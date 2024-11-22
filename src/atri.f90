@@ -53,8 +53,13 @@
           yy = Sqrt(xx)
         end if
         atri = yy + at1
-      else
-        xx = b2 * b2 - 2.0 * b2 * (b1 - 0.5 * u3)
+	  else
+		  ! Avoid overflow if any input is excessively large
+		  if (abs(b2) > 1.0E+19 .or. abs(b1) > 1.0E+19 .or. abs(u3) > 1.0E+19) then
+			  xx = 0.0  
+		  else
+			  xx = b2 * b2 - 2.0 * b2 * (b1 - 0.5 * u3)
+		  end if
         if (xx <= 0.) then
           yy = 0.
         else
