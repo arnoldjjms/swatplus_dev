@@ -251,31 +251,8 @@ jobs:
 
 ##### Build with Intel ifx debug
 
-  build-intel-ifx-debug:
-    runs-on: windows-latest
-    needs:
-      - version
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: '${{ github.event.inputs.rev }}'
-
-      - name: Install Compiler
-        uses: fortran-lang/setup-fortran@v1
-        id: setup-fortran
-        with:
-          compiler: intel
-          version: '2024.1'
-
-      - name: Download version
-        uses: actions/download-artifact@v4
-        with:
-          name: release_tag
-
-      - name: Build SWAT+ (Intel ifx Debug)
-        id: build_exe
+  - name: Build SWAT+ Debug
+        id: build_exe_debug
         run: |
           echo ${{ env.FC }}
           cmake --version
@@ -283,18 +260,36 @@ jobs:
           RELEASE_VERSION=`cat v.txt`
           os="$RUNNER_OS"
 
-          cmake -B build -G "MinGW Makefiles" \
-            -D CMAKE_Fortran_COMPILER="C:\Program Files (x86)\Intel\oneAPI\compiler\2024.1\bin\ifx.exe" \
-            -D TAG=$RELEASE_VERSION \
-            -D CMAKE_BUILD_TYPE=Debug \
-            --preset ifx_debug
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            cmake -B build \
+              -D CMAKE_Fortran_COMPILER=${{ env.FC }} \
+              -D TAG=$RELEASE_VERSION \
+              -D CMAKE_BUILD_TYPE=Debug
+            e="build/swatplus-*"
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            cmake -B build -G "MinGW Makefiles" \
+              -D CMAKE_Fortran_COMPILER="C:\Program Files (x86)\Intel\oneAPI\compiler\2024.1\bin\${{ env.FC }}.exe" \
+              -D TAG=$RELEASE_VERSION \
+              -D CMAKE_BUILD_TYPE=Debug
+            e="build/swatplus-*.exe"
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            cmake -B build \
+              -D CMAKE_Fortran_COMPILER=${{ env.FC }} \
+              -D TAG=$RELEASE_VERSION \
+              -D CMAKE_APPLE_SILICON_PROCESSOR="x86_64" \
+              -D CMAKE_BUILD_TYPE=Debug
+            e="build/swatplus-*"
+          else
+            echo "$RUNNER_OS not supported."
+            exit 1
+          fi
 
           # compile
           cmake --build build --parallel 4
 
           exebase=`basename -s .exe build/swatplus-*`
-          exez="${exebase}.zip"
-          exe=`ls build/swatplus-*.exe`
+          exez="${exebase}-debug.zip"
+          exe=`ls $e`
 
           echo $exe
           echo $exez
@@ -304,18 +299,23 @@ jobs:
           echo "exez=$exez" >> $GITHUB_OUTPUT
           echo "os=$os" >> $GITHUB_OUTPUT
 
-          ls -hl build/swatplus-*
-          file build/swatplus-*
-
-          (cd build && zip ../$exez swatplus-*)
+          ls -hl build/swatplus-*.exe
+          file build/swatplus-*.exe
 
         shell: bash
+
+      - name: zip
+        if: matrix.os == 'windows-latest'
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: ${{ steps.build_exe_debug.outputs.exe }}
+          dest: ${{ steps.build_exe_debug.outputs.exez }}
 
       - name: upload
         uses: actions/upload-artifact@v4
         with:
-          name: intel-ifx-debug-${{ steps.build_exe.outputs.os }}
-          path: ${{ steps.build_exe.outputs.exez }}
+          name: intel-debug-${{ steps.build_exe_debug.outputs.os }}
+          path: ${{ steps.build_exe_debug.outputs.exez }}
 
 ##### Create a new release with all zip files
   release:
