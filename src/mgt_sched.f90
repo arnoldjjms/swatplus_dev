@@ -343,9 +343,7 @@
                   fertorgn, fertsolp, fertorgp
               endif
             endif
-            
-
- 
+     
           case ("pest")   !! pesticide operation
             !xwalk application in the mgt file with the pest community
             iob = sp_ob%hru + ihru - 1

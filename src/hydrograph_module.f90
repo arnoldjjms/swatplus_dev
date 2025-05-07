@@ -169,7 +169,33 @@
       type (hyd_output) :: bch_out_y
       type (hyd_output) :: bch_out_a
       type (hyd_output) :: chomz
+      
+      !! water withdrawn from an individual source
+      type (hyd_output) :: wdraw_om
+      !! total water withdrawn from all sources
+      type (hyd_output) :: wdraw_om_tot
+      !! outflow from an water allocation object - wtp or use
+      type (hyd_output) :: outflo_om
+      
+      !treatment - fraction of flow and ppm 
+      type (hyd_output) :: trt         !wastewater treatment plants
 
+      !! water treatment plant storage
+      type (hyd_output), dimension (:), allocatable :: wtp_om_stor
+      !! water treatment plant treated concentrations
+      type (hyd_output), dimension (:), allocatable :: wtp_om_treat
+      
+      !! water use storage
+      type (hyd_output), dimension (:), allocatable :: use_om_stor
+      !! water use effluent concentrations
+      type (hyd_output), dimension (:), allocatable :: use_om_efflu
+      
+      !! canal storage
+      type (hyd_output), dimension (:), allocatable :: canal_om_stor
+      
+      !! water tower storage
+      type (hyd_output), dimension (:), allocatable :: wtow_om_stor
+       
       type object_output
         character (len=10) :: name = ""
         character (len=10) :: obtyp = ""  !! object type: hru,hlt,hs,rxc,dr,out,sdc
@@ -487,9 +513,6 @@
       
       !delivery ratio - all fractions 
       type (hyd_output), dimension(:), allocatable :: dr          !delivery ratio for objects- chan, res, lu
-
-      !treatment - fraction of flow and ppm 
-      type (hyd_output), dimension(:), allocatable :: trt         !wastewater treatment plants
 
       !export coefficient - m3, t, kg
       type (hyd_output), dimension(:), allocatable :: exco        !export coefficient

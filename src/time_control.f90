@@ -235,7 +235,7 @@
             do iwallo = 1, db_mx%wallo_db
               !! if a channel is not an object, call at beginning of day
               j = iwallo    ! to avoid a compiler warning
-              call wallo_demand (j)
+              !call wallo_demand (j)
             end do
           end if
 
@@ -331,7 +331,7 @@
           if (bsn_cc%cswat /= 2) then                                       !! fg added this because so that cbn_zhang2 can handle bio mixing directly
             if (hru(j)%hyd%biomix > 1.e-6) call mgt_newtillmix (j, hru(j)%hyd%biomix, 0)
           end if
-
+          
           !! update sequence number for year in rotation to that of
           !! the next year and reset sequence numbers for operations
           do ipl = 1, pcom(j)%npl

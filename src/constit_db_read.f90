@@ -22,7 +22,7 @@
       eof = 0
       imax = 0
       
-      inquire (file=in_sim%cs_db, exist=i_exist)
+      inquire (file='carbon_coef.cbn', exist=i_exist)
       if (.not. i_exist .or. in_sim%cs_db == "null") then
         allocate (cs_db%pests(0:0))
         allocate (cs_db%paths(0:0))

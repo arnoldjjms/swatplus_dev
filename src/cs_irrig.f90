@@ -46,7 +46,7 @@
       
 
       !determine number of irrigation sources
-      irrig_nsource = wallo(iwallo)%dmd(idmd)%dmd_src_obs
+      !irrig_nsource = wallo(iwallo)%dmd(idmd)%dmd_src_obs
       
       !loop through the irrigation sources
       do isrc=1,irrig_nsource

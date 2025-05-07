@@ -8,7 +8,7 @@
       implicit none 
 
       integer, intent (in) :: iwallo            !water allocation object number
-      integer, intent (in)  :: idmd             !water demand object number
+      integer :: idmd                           !water demand object number
       integer :: j = 0              !none       |hru number
       integer :: id = 0             !none       |flo_con decision table number
       integer :: isrc = 0           !none       |source object number
@@ -25,13 +25,10 @@
       do idmd = 1, wallo(iwallo)%dmd_obs
                
         !! zero demand, withdrawal, and unmet for each source
-        do isrc = 1, wallo(iwallo)%dmd(idmd)%dmd_src_obs
+        do isrc = 1, wallo(iwallo)%dmd(idmd)%src_num
           wallod_out(iwallo)%dmd(idmd)%src(isrc) = walloz
         end do
   
-        !! set demand for each object
-        call wallo_demand (iwallo, idmd)
- 
         !! compute total demand from each demand object
         select case (wallo(iwallo)%dmd(idmd)%dmd_typ)
         !! average daily demand
@@ -60,19 +57,18 @@
           call conditions (j, id)
           call actions (j, icmd, id)
           wallod_out(iwallo)%dmd(idmd)%dmd_tot = dmd_m3
-          end if
         end select
 
         !! initialize unmet to total demand and subtract as water is withdrawn
         wallo(iwallo)%dmd(idmd)%unmet_m3 = wallod_out(iwallo)%dmd(idmd)%dmd_tot
       
         !! compute demand from each source object
-        do isrc = 1, wallo(iwallo)%dmd(idmd)%dmd_src_obs
+        do isrc = 1, wallo(iwallo)%dmd(idmd)%src_num
           wallod_out(iwallo)%dmd(idmd)%src(isrc)%demand = wallo(iwallo)%dmd(idmd)%src(isrc)%frac *      &
                                                                 wallod_out(iwallo)%dmd(idmd)%dmd_tot
         end do
       
-      end do idmd
+      end do ! idmd loop
     
       return
       end subroutine wallo_demand

@@ -21,12 +21,14 @@
         !! zero biomass increase and nutrient uptake
         pl_mass_up = plt_mass_z
         
-        !! check for start and end of dormancy of temp-based growth plant
-        idp = pcom(j)%plcur(ipl)%idplt
-        if (pldb(idp)%trig == "temp_gro") then
-          call pl_dormant
+        if (pcom(j)%plcur(ipl)%gro == "y") then
+          !! check for start and end of dormancy of temp-based growth plant
+          idp = pcom(j)%plcur(ipl)%idplt
+          if (pldb(idp)%trig == "temp_gro") then
+            call pl_dormant
+          end if
         end if
-       
+        
         !! plant will not undergo stress if dormant
         if (pcom(j)%plcur(ipl)%idorm == "n" .and. pcom(j)%plcur(ipl)%gro == "y") then
 

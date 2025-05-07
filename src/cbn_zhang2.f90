@@ -354,7 +354,7 @@
                 ! Changed by fg to always have some bio mixing
                 if (soil(j)%phys(k)%d <= bmix_depth) then            
                   ! org_con%till_eff = 1.0 + hru(j)%hyd%biomix
-                  org_con%till_eff = 1.0 + bmix_eff
+                  org_con%till_eff = 1.0 + soil(j)%ly(k)%tillagef
                 else
 
                   if (k == 1) then
@@ -364,7 +364,7 @@
                   end if
 
                   if (soil(j)%phys(k)%d > bmix_depth .and. soil(j)%phys(k-1)%d < bmix_depth) then 
-                    org_con%till_eff = 1.0 + (bmix_eff * (bmix_depth - soil(j)%phys(k-1)%d) / soil_lyr_thickness)  
+                    org_con%till_eff = 1.0 + (soil(j)%ly(k)%tillagef * (bmix_depth - soil(j)%phys(k-1)%d) / soil_lyr_thickness)  
                   else
                     org_con%till_eff = 1.0
                   end if
@@ -685,7 +685,7 @@
               !supply - demand
               rnmn = sum - dmdn
               
-        !     update
+        !! imm_min = 1
               if (rnmn > 0.) then
                 soil1(j)%mn(k)%nh4 = soil1(j)%mn(k)%nh4 + rnmn     
                 min_n = soil1(j)%mn(k)%no3 - rnmn
@@ -697,6 +697,7 @@
                 end if   
                 ! print*, "2. in cbn_zhang2", k, soil1(j)%mn(k)%no3, rnmn
               end if
+        !! imm_min = 1
               
 	          ! calculate p flows
               ! compute humus mineralization on active organic p
@@ -909,13 +910,18 @@
                 ! soil1(j)%rsd(k)%c = soil1(j)%rsd(k)%c - hrc_d(j)%rsd_rootdecay_c
               end if 
               
-                soil1(j)%mn(k)%no3 = soil1(j)%mn(k)%no3 - (org_flux%immmets1 + org_flux%immstrs1 + org_flux%immstrs2 +    &
-                            org_flux%imms1s2 + org_flux%imms1s3 + org_flux%imms2s1 + org_flux%imms2s3 + org_flux%imms3s1)
+        !! imm_min = 0
+        !        soil1(j)%mn(k)%no3 = soil1(j)%mn(k)%no3 - (org_flux%immmets1 + org_flux%immstrs1 + org_flux%immstrs2 +    &
+        !                    org_flux%imms1s2 + org_flux%imms1s3 + org_flux%imms2s1 + org_flux%imms2s3 + org_flux%imms3s1)
       
-                soil1(j)%mn(k)%nh4 = soil1(j)%mn(k)%nh4 + org_flux%mnrmets1 + org_flux%mnrstrs1 + org_flux%mnrstrs2 +     &
-                             org_flux%mnrs1s2 + org_flux%mnrs1s3 + org_flux%mnrs2s1 + org_flux%mnrs2s3 + org_flux%mnrs3s1
-                !hnb_d(j)%immob =
-                !hnb_d(j)%minrl =
+        !        soil1(j)%mn(k)%nh4 = soil1(j)%mn(k)%nh4 + org_flux%mnrmets1 + org_flux%mnrstrs1 + org_flux%mnrstrs2 +     &
+        !                     org_flux%mnrs1s2 + org_flux%mnrs1s3 + org_flux%mnrs2s1 + org_flux%mnrs2s3 + org_flux%mnrs3s1
+        !        if (soil1(j)%mn(k)%no3 < -2.) then
+        !          soil1(j)%mn(k)%no3 = 0.
+        !        end if
+        !       hnb_d(j)%immob =
+        !       hnb_d(j)%minrl =
+        !! imm_min = 0
                 
               soil1(j)%meta(k)%n = max(.001, soil1(j)%meta(k)%n - org_flux%efmets1 & !subtract n flow from met (metabolic litter) to s1 (microbial biomass)
                             - org_flux%mnrmets1)                    !subtract n immobilization during transformaiton from met (metabolic litter) to s1 (microbial biomass)
@@ -983,11 +989,7 @@
               !soil1(j)%tot(k)%c = 100. * (soil1(j)%hs(k)%c + soil1(j)%hp(k)%c + soil1(j)%microb(k)%c) / sol_mass 
               ! soil1(j)%tot(k)%c = soil1(j)%hs(k)%c + soil1(j)%hp(k)%c + soil1(j)%microb(k)%c
               soil1(j)%tot(k)%c = soil1(j)%str(k)%c + soil1(j)%meta(k)%c + soil1(j)%hp(k)%c + soil1(j)%hs(k)%c + soil1(j)%microb(k)%c 
-              if (k == 1 ) then
-                soil1(j)%seq(k)%c = 0.0
-              else
-                soil1(j)%seq(k)%c = soil1(j)%hp(k)%c + soil1(j)%hs(k)%c + soil1(j)%microb(k)%c 
-              endif
+              soil1(j)%seq(k)%c = soil1(j)%hp(k)%c + soil1(j)%hs(k)%c + soil1(j)%microb(k)%c 
 
         end if  !soil temp and soil water > 0.
 

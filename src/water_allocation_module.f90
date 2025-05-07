@@ -8,7 +8,7 @@
       real :: dmd_m3 = 0.                   !m3     |demand
       character(len=16), dimension(:), allocatable :: trt_om_name    !treatment name in treatment.trt
       
-      !water source objects
+      !! water source objects
       type water_source_objects
         integer :: num = 0                      !demand object number
         character (len=3) :: ob_typ = ""        !channel(cha), reservoir(res), aquifer(aqu), unlimited source(unl)
@@ -21,20 +21,21 @@
         real :: div_vol = 0.
       end type water_source_objects
 
-      !demand source objects
+      !! demand source objects
       type demand_source_objects
+        character (len=25) :: dtbl = ""         !decision table name to set fractions of each source (if used-not null)
+        integer :: src_wal                      !sequential source number as listed in wallo object
         character (len=10) :: src_typ = ""      !source object type
         integer :: src_num = 0                  !number of the source object
         character (len=10) :: conv_typ = ""     !conveyance type - pipe or pump
         integer :: conv_num = 0                 !number of the conveyance object
-        integer :: src = 0                      !sequential source number as listed in wallo object
         real :: frac = 0.                       !fraction of demand supplied by the source
         character (len=1) :: comp = ""          !compensate from source if other sources are limiting (y/n)
        end type demand_source_objects
         
-      !demand receiving objects
+      !! demand receiving objects
       type demand_receiving_objects
-        integer :: rcv_num = 0                  !sequential number of the receiving object type
+        character (len=25) :: dtbl = ""         !decision table name to set fractions of each source (if used-not null)
         character (len=10) :: rcv_typ = ""      !receiving object type
         integer :: rcv_num = 0                  !number of the receiving object
         character (len=10) :: conv_typ = ""     !conveyance type - pipe or pump
@@ -43,7 +44,15 @@
         character (len=1) :: comp = ""          !compensate if other receiving objects are at max capacity (y/n)
        end type demand_receiving_objects
         
-      !water demand objects
+      !! source output
+      type source_output
+        real :: demand = 0.                     !ha-m       !demand
+        real :: withdr = 0.                     !ha-m       |amoount withdrawn from the source
+        real :: unmet  = 0.                     !ha-m       |unmet demand
+      end type source_output
+      type (source_output) :: walloz
+      
+      !! water demand objects
       type water_demand_objects
         integer :: num = 0                      !demand object number
         character (len=10) :: ob_typ = ""       !hru, water treatment plant, industrial and dpmestic use
@@ -54,11 +63,12 @@
         character (len=2) :: right = ""         !water right (sr -senior or jr - junior right)
         integer :: src_num = 0                  !number of source objects
         integer :: rcv_num = 0                  !number of receiving objects
+        integer :: rec_num = 0                  !number of recall file
+        integer :: dtbl_num = 0                 !number of decision table
         character (len=10) :: dtl_src_fr = ""   !source object decision table - to condition fraction from each source
         type (demand_source_objects), dimension(:), allocatable :: src      !sequential source objects as listed in wallo object
         character (len=10) :: dtl_rcv_fr = ""   !receiving object decision table - to condition fraction to each receiving object
         type (demand_receiving_objects), dimension(:), allocatable :: rcv   !sequential source objects as listed in wallo object
-
         real :: unmet_m3 = 0.                   !m3     |unmet demand for the object
         real :: withdr_tot = 0.                 !m3     |total withdrawal of demand object from all sources
         real :: irr_eff = 0.                    !irrigation in-field efficiency
@@ -78,13 +88,16 @@
       end type water_allocation
       type (water_allocation), dimension(:), allocatable :: wallo            !dimension by water allocation objects
 
-      !source output
-      type source_output
-        real :: demand = 0.                     !ha-m       !demand
-        real :: withdr = 0.                     !ha-m       |amoount withdrawn from the source
-        real :: unmet  = 0.                     !ha-m       |unmet demand
-      end type source_output
-      type (source_output) :: walloz
+      !! water_treatment_data
+      type water_treatment_use_data
+        character (len=25) :: name = ""         !name of the water treatment plant
+        character (len=25) :: init = ""         !name of the intitial concentrations in wtp storage
+        real :: stor_mx                   !m3   !maximum storage in plant
+        real :: lag_days                  !days !treatement time - lag outflow
+        real :: loss_fr                         !water loss during treament
+      end type water_treatment_use_data        
+      type (water_treatment_use_data), dimension(:), allocatable :: wtp        
+      type (water_treatment_use_data), dimension(:), allocatable :: wuse
       
       !demand object output
       type demand_object_output

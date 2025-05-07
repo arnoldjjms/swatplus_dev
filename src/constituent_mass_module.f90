@@ -117,16 +117,21 @@
       type (constituent_mass), dimension (:), allocatable :: ch_water_init
       type (constituent_mass), dimension (:), allocatable :: ch_benthic_init
       
-      ! constituent mass - reservoirs
-      type constituent_mass_res
-        real, dimension (:), allocatable :: pest
-        real, dimension (:), allocatable :: path
-        real, dimension (:), allocatable :: hmet
-        real, dimension (:), allocatable :: salt        !salt ion mass (kg)
-        real, dimension (:), allocatable :: saltc       !salt ion concentrations (g/m3)
-        real, dimension (:), allocatable :: cs          !constituent mass (kg)
-        real, dimension (:), allocatable :: csc         !constituent concentration (g/m3)
-      end type constituent_mass_res
+      ! water treatment plant storage
+      type (constituent_mass), dimension (:), allocatable :: wtp_cs_stor
+      ! water treatment plant treated concentrations
+      type (constituent_mass), dimension (:), allocatable :: wtp_cs_treat
+      
+      ! water use storage
+      type (constituent_mass), dimension (:), allocatable :: wuse_cs_stor
+      ! water use effluent concentrations
+      type (constituent_mass), dimension (:), allocatable :: wuse_cs_efflu
+      
+      ! canal storage
+      type (constituent_mass), dimension (:), allocatable :: canal_cs_stor
+      
+      ! water tower storage
+      type (constituent_mass), dimension (:), allocatable :: wtow_cs_stor
       
       ! storing salt and constituent mass in reservoirs
       type (constituent_mass), dimension (:), allocatable :: res_water
