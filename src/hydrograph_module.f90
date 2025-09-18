@@ -58,7 +58,7 @@
         real :: flo_satex = 0.         !! m3           |volume of water from saturation excess (high water table; from gwflow module)
         real :: flo_satexsw = 0.       !! m3           |volume of water from saturation excess (saturated profile)
         real :: flo_tile = 0.          !! m3           |volume of water from tile flow
-      end type
+      end type hyd_sep
       
       type (hyd_output), dimension(:),allocatable :: hd
       type (hyd_output), dimension(:), allocatable :: rec_d
@@ -170,6 +170,25 @@
       type (hyd_output) :: bch_out_a
       type (hyd_output) :: chomz
       
+      !! source and receiving objects
+      type wallo_source_object
+        type (hyd_output) :: hd
+      end type wallo_source_object
+        
+      !! source and receiving objects
+      type wallo_transfer_object
+        !! total for transfer object
+        type (hyd_output) :: h_tot
+        type (wallo_source_object), dimension (:), allocatable :: src
+      end type wallo_transfer_object
+      
+      !! source and receiving objects
+      type water_allocation_object
+        !! source and receiving objects
+        type (wallo_transfer_object), dimension (:), allocatable :: trn
+      end type water_allocation_object
+      type (water_allocation_object), dimension (:), allocatable :: wal_om
+        
       !! water withdrawn from an individual source
       type (hyd_output) :: wdraw_om
       !! total water withdrawn from all sources
@@ -177,24 +196,28 @@
       !! outflow from an water allocation object - wtp or use
       type (hyd_output) :: outflo_om
       
-      !treatment - fraction of flow and ppm 
-      type (hyd_output) :: trt         !wastewater treatment plants
-
-      !! water treatment plant storage
+      !! water treatment plant storage and outflow
       type (hyd_output), dimension (:), allocatable :: wtp_om_stor
-      !! water treatment plant treated concentrations
+      type (hyd_output), dimension (:), allocatable :: wtp_om_out
+      !! water treatment plant treated concentrations - input
       type (hyd_output), dimension (:), allocatable :: wtp_om_treat
       
-      !! water use storage
-      type (hyd_output), dimension (:), allocatable :: use_om_stor
-      !! water use effluent concentrations
-      type (hyd_output), dimension (:), allocatable :: use_om_efflu
+      !! water use storage and outflow
+      type (hyd_output), dimension (:), allocatable :: wuse_om_stor
+      type (hyd_output), dimension (:), allocatable :: wuse_om_out
+      !! water use effluent concentrations - input
+      type (hyd_output), dimension (:), allocatable :: wuse_om_efflu
       
-      !! canal storage
+      !! outside source outflow
+      type (hyd_output), dimension (:), allocatable :: osrc_om_out
+      
+      !! canal storage and outflow
       type (hyd_output), dimension (:), allocatable :: canal_om_stor
+      type (hyd_output), dimension (:), allocatable :: canal_om_out
       
-      !! water tower storage
+      !! water tower storage and outflow
       type (hyd_output), dimension (:), allocatable :: wtow_om_stor
+      type (hyd_output), dimension (:), allocatable :: wtow_om_out
        
       type object_output
         character (len=10) :: name = ""

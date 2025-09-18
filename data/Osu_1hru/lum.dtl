@@ -409,14 +409,14 @@ irrig_rel                    3         3         3
 var                        obj   obj_num           lim_var            lim_op     lim_const      alt1      alt2      alt3  
 vol                        res         0              evol                 *       1.00000         <         >         -  
 vol                        res         0              pvol                 *       1.00000         >         -         -  
-irr_dmd_wro                wro         1              null                 -       0.00000         -         -         >  
+irr_trn_wro                wro         1              null                 -       0.00000         -         -         >  
 act_typ                    obj   obj_num              name            option         const        const2                fp  outcome           
 release                    res         0    over_emergency              days       5.00000       0.00000              evol  n   y   n   
 release                    res         0    over_principal              days      15.00000       0.00000              pvol  y   n   n   
 allocate_wro               wro         1      direct_irrig               res       1.00000       0.00000              null  n   n   y   
 
 name                     conds      alts      acts  
-irr_str8_dmd                 1         1         1  
+irr_str8_trn                 1         1         1  
 var                        obj   obj_num           lim_var            lim_op     lim_const      alt1  
 w_stress                   hru         0              null                 -       0.80000         <  
 act_typ                    obj   obj_num              name            option         const        const2                fp  outcome           

@@ -152,7 +152,7 @@
        real :: cpn4 = 0.         !                     |
        real :: cpn5 = 0.         !                     |
        real :: wmin = 0.         !                     |
-       real :: dmdn = 0.         !                     |
+       real :: trnn = 0.         !                     |
        real :: wdn = 0.          !kg N/ha              |amount of nitrogen lost from nitrate pool in
        real :: deltawn = 0.      !                     |
        real :: deltabmc = 0.     !                     |
@@ -185,9 +185,7 @@
        real :: xx = 0.           !varies    |variable to hold calculation results
        logical :: ufc = .false. !Use File Coefficients (ufc) from carbon_coef.cbn file
 
-
        ufc = carbon_coef_file
-
 
        !! initialize local variables
        deltawn = 0.
@@ -250,7 +248,7 @@
        cpn4 = 0.
        cpn5 = 0.
        wmin = 0.
-       dmdn = 0.
+       trnn = 0.
        !bmix_depth = 50    
        soil_lyr_thickness = 0
 
@@ -299,7 +297,6 @@
         end if
         
         ! Initialize org_allo variables to zero except for a1co2, asco2, and apco2 because they are input values and don't change.
-        org_allo(cf_lyr)%abco2 = 0.
         org_allo(cf_lyr)%abp = 0.
         org_allo(cf_lyr)%asp = 0.
         soil1(j)%org_allo_lr(k) = org_allo(cf_lyr)   
@@ -329,7 +326,7 @@
 
             case(1)
               !calculate tillage factor using dssat
-              if (tillage_switch(j) .eq. 1 .and. tillage_days(j) .le. 30) then
+              if (tillage_switch(j) .eq. 1 .and. tillage_days(j) .le. till_eff_days) then
                 if (k == 1) then
                   org_con%till_eff = 1.6
                 else
@@ -347,7 +344,7 @@
               ! place holder for epic method to compute till_eff
 
             case(3)
-              if (tillage_switch(j) .eq. 1 .and. tillage_days(j) .le. 30) then
+              if (tillage_switch(j) .eq. 1 .and. tillage_days(j) .le. till_eff_days) then
                 ! Kemanian method    ----having modi
                 org_con%till_eff = 1. + soil(j)%ly(k)%tillagef 
               else
@@ -416,7 +413,6 @@
 
           ! set nitrogen carbon ratios for upper layer
           if (k == 1) then
-            org_allo(cf_lyr)%abco2 = .55
             !carbdb%hs_rate=prmt(47) !century slow humus transformation rate d^-1(0.00041_0.00068) original value = 0.000548,
             if (.not. ufc) carbdb(cf_lyr)%hs_rate = 5.4799998e-04
             !carbdb%hp_rate=prmt(48) !century passive humus transformation rate d^-1(0.0000082_0.000015) original value = 0.000012 
@@ -428,6 +424,7 @@
             if (.not. ufc) org_allo(cf_lyr)%a1co2 = .55
             if (.not. ufc) org_allo(cf_lyr)%asco2 = .55
             if (.not. ufc) org_allo(cf_lyr)%apco2 = .55
+            if (.not. ufc) org_allo(cf_lyr)%abco2 = .55
             org_ratio%nchp = .1
             xbm = 1.
             ! org_con%cs = org_con%cs * carbdb(cf_lyr)%microb_top_rate
@@ -572,13 +569,13 @@
               wmin = max(1.e-5,soil1(j)%mn(k)%no3 + soil1(j)%mn(k)%nh4 + sum)
               
               !total demand for potential tranformaiton of som
-              dmdn = cpn1 +cpn2 + cpn3 + cpn4 + cpn5
+              trnn = cpn1 +cpn2 + cpn3 + cpn4 + cpn5
               
               reduc = 1.
         !     reduce demand if supply limits
         
-              if (wmin < dmdn) then
-                  reduc = wmin / dmdn
+              if (wmin < trnn) then
+                  reduc = wmin / trnn
               end if
               
         !     actual transformations
@@ -680,12 +677,12 @@
                   wmin = max(1.e-5, soil1(j)%mn(k)%no3 + soil1(j)%mn(k)%nh4 + sum)
                   
                   !total demand for potential tranformaiton of som
-                  dmdn = cpn1 + cpn2 + cpn3 + cpn4 + cpn5              
+                  trnn = cpn1 + cpn2 + cpn3 + cpn4 + cpn5              
 
               !supply - demand
-              rnmn = sum - dmdn
+              rnmn = sum - trnn
               
-        !! imm_min = 1
+        !     update
               if (rnmn > 0.) then
                 soil1(j)%mn(k)%nh4 = soil1(j)%mn(k)%nh4 + rnmn     
                 min_n = soil1(j)%mn(k)%no3 - rnmn
@@ -697,7 +694,6 @@
                 end if   
                 ! print*, "2. in cbn_zhang2", k, soil1(j)%mn(k)%no3, rnmn
               end if
-        !! imm_min = 1
               
 	          ! calculate p flows
               ! compute humus mineralization on active organic p
@@ -909,20 +905,10 @@
                 hrc_d(j)%rsd_rootdecay_c = lmcta + lscta
                 ! soil1(j)%rsd(k)%c = soil1(j)%rsd(k)%c - hrc_d(j)%rsd_rootdecay_c
               end if 
-              
-        !! imm_min = 0
-        !        soil1(j)%mn(k)%no3 = soil1(j)%mn(k)%no3 - (org_flux%immmets1 + org_flux%immstrs1 + org_flux%immstrs2 +    &
-        !                    org_flux%imms1s2 + org_flux%imms1s3 + org_flux%imms2s1 + org_flux%imms2s3 + org_flux%imms3s1)
-      
-        !        soil1(j)%mn(k)%nh4 = soil1(j)%mn(k)%nh4 + org_flux%mnrmets1 + org_flux%mnrstrs1 + org_flux%mnrstrs2 +     &
-        !                     org_flux%mnrs1s2 + org_flux%mnrs1s3 + org_flux%mnrs2s1 + org_flux%mnrs2s3 + org_flux%mnrs3s1
-        !        if (soil1(j)%mn(k)%no3 < -2.) then
-        !          soil1(j)%mn(k)%no3 = 0.
-        !        end if
-        !       hnb_d(j)%immob =
-        !       hnb_d(j)%minrl =
-        !! imm_min = 0
-                
+                      
+              if (soil1(j)%mn(k)%no3 < 0.0) soil1(j)%mn(k)%no3 = 0.0
+              if (soil1(j)%mn(k)%nh4 < 0.0) soil1(j)%mn(k)%nh4 = 0.0
+
               soil1(j)%meta(k)%n = max(.001, soil1(j)%meta(k)%n - org_flux%efmets1 & !subtract n flow from met (metabolic litter) to s1 (microbial biomass)
                             - org_flux%mnrmets1)                    !subtract n immobilization during transformaiton from met (metabolic litter) to s1 (microbial biomass)
 
@@ -997,3 +983,4 @@
 
     return
     end subroutine cbn_zhang2
+    

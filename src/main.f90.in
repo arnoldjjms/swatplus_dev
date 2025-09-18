@@ -91,7 +91,12 @@
       call dtbl_flocon_read
             
       ! read water treatment and water allocation files - before hru lum tables
-      call treat_read_om
+      call om_treat_read
+      call om_use_read
+      call water_treatment_read
+      call water_use_read
+      call water_tower_read
+      call water_pipe_read
       call water_allocation_read
       
       call hru_dtbl_actions_init

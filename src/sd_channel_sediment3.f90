@@ -1,4 +1,4 @@
-      subroutine sd_channel_sediment3
+subroutine sd_channel_sediment3
 
       use climate_module
       use sd_channel_module
@@ -53,6 +53,9 @@
       real :: flovol_ob = 0.
       real :: wet_fill = 0.
       real :: ave_rate
+      real :: v_vc = 0.
+      real :: m_exhaust = 0.
+      real :: dur_scale = 0.
       !!
       
       ich = isdch
@@ -112,7 +115,7 @@
         !trap_eff = 0.05 * log(sd_ch(ich)%fp_inun_days) + 0.1
         !! trap efficiency from Dynamic SedNet Component Model Reference Guide: Update 2017
         fp_m2 = 3. * sd_ch(ich)%chw * sd_ch(ich)%chl * 1000.
-        exp_co = 0.0003 * fp_m2 / florate_ob
+        exp_co = 0.0001 * fp_m2 / florate_ob
         trap_eff = sd_ch(ich)%fp_inun_days * (florate_ob / ave_rate) * (1. - exp(-exp_co))
         trap_eff = Min (1., trap_eff)
         fp_dep%sed = trap_eff * ht1%sed
@@ -178,17 +181,23 @@
       b_exp = min (3.5, b_exp)
       if (vel_rch > vel_cr) then
         !! bank erosion m/yr
-        ebank_m = 0.00024 * (vel_rch / vel_cr) ** sd_ch(ich)%bank_exp
+        dur_scale = 0.0001 * (ob(icmd)%area_ha / 100.) ** (-0.0858)
+        v_vc = dur_scale * sd_ch(ich)%chw * (1. / (1. + exp(-4. * (vel_rch / vel_cr - 1.))))
+        m_exhaust = 0.0002 * sd_ch(ich)%chw
+        ebank_m = 1. / (1. / v_vc + 1. / m_exhaust)
+        !ebank_m = 0.0001 * sd_ch(ich)%chw * (1. / (1. + exp(-4. * (vel_rch / vel_cr - 1.))) - 0.5)
+        !ebank_m = 0.001 / (1. + exp(-4. * (vel_rch / vel_cr) / sd_ch(ich)%chw))
+        !ebank_m = 0.00024 * (vel_rch / vel_cr) ** sd_ch(ich)%bank_exp
       else
         ebank_m = 0.
       end if
       
       !! write for Peter
       !if (ich == 2133) then
-      !write () time%day, time%yrc, ich, sd_ch(ich)%chw, sd_ch(ich)%chw, sd_ch(ich)%chl,   &
+      !write (7777, *) time%day, time%yrc, ich, sd_ch(ich)%chw, sd_ch(ich)%chd, sd_ch(ich)%chl,   &
       !    sd_ch(ich)%chn, sd_ch(ich)%sinu, sd_ch(ich)%pk_rto, pk_rto, peakrate, vel,      &
       !    sd_ch(ich)%ch_clay, cohesion, sd_ch(ich)%cov, veg, cohes_fac, sd_ch(ich)%ch_bd, &
-      !    bd_fac, sd_ch(ich)%vcr_coef, vel_cr, sd_ch(ich)%bank_exp, ebank_m, "  0.24 ")
+      !    bd_fac, sd_ch(ich)%vcr_coef, vel_cr, sd_ch(ich)%bank_exp, ebank_m
       !end if
       
       ch_morph(ich)%w_yr = ch_morph(ich)%w_yr + ebank_m

@@ -394,12 +394,12 @@
         !end if
 
         !! check irrigation demand decision table for water allocation (after adding irrigation)
-        if (hru(j)%irr_dmd_dtbl > 0) then
-          id = hru(j)%irr_dmd_dtbl
+        if (hru(j)%irr_trn_dtbl > 0) then
+          id = hru(j)%irr_trn_dtbl
           jj = j
           d_tbl => dtbl_lum(id)
           !! iauto points to pcom(j)%dtbl(iauto) for days between operation
-          iauto = hru(j)%irr_dmd_iauto
+          iauto = hru(j)%irr_trn_iauto
           call conditions (jj, iauto)
           call actions (jj, iob, iauto)
         end if
@@ -823,6 +823,9 @@
       ! output_plantweather
         hpw_d(j)%lai = pcom(j)%lai_sum
         hpw_d(j)%bioms = pl_mass(j)%tot_com%m
+        if (pl_mass(j)%tot_com%m < 0.) then
+          pl_mass(j)%tot_com%m = 0.
+        end if
         hpw_d(j)%residue = soil1(j)%rsd(1)%m
         hpw_d(j)%yield = pl_yield%m
         pl_yield = plt_mass_z
