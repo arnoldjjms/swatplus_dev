@@ -21,8 +21,9 @@
         iconv = wallo(iwallo)%trn(itrn)%src(isrc)%conv_num
         select case (wallo(iwallo)%trn(itrn)%src(isrc)%conv_typ)
         case ("pipe")
-          !! ht5 is the organic hydrograph being transfered from the source to the receiving object
-          ht5 = pipe(iconv)%loss_fr * ht5
+          !! organic hydrograph being transfered from the source to the receiving object
+          wal_omd(iwallo)%trn(itrn)%src(isrc)%hd = (1. - pipe(iconv)%loss_fr) *            &
+                                                 wal_omd(iwallo)%trn(itrn)%src(isrc)%hd
         case ("pump")
           !! include pump losses here
         end select

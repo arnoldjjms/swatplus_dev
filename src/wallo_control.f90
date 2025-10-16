@@ -28,33 +28,55 @@
       !! zero demand, withdrawal, and unmet for entire allocation object
       wallo(iwallo)%tot = walloz
       
+      !! zero total transfer and treatment and use outflows
+      wal_omd(iwallo)%trn(:)%h_tot = hz
+      wtp_om_out = hz
+      wuse_om_out = hz
+      
       !!loop through each demand object
       do itrn = 1, wallo(iwallo)%trn_obs
                
         !! zero demand, withdrawal, and unmet for each source
         do isrc = 1, wallo(iwallo)%trn(itrn)%src_num
           wallod_out(iwallo)%trn(itrn)%src(isrc) = walloz
+          wal_omd(iwallo)%trn(itrn)%src(isrc)%hd = hz
         end do
   
         !! compute flow from outside sources
-        do iosrc = 1, wallo(iwallo)%out_src
-          select case (wallo(iwallo)%osrc(iosrc)%lim_typ)
-          case ("mon_lim")
-            osrc_om_out(iosrc)%flo = wallo(iwallo)%osrc(iosrc)%limit_mon(time%mo)
-          case ("dtbl")
-            !! use decision table for outflow
-          case ("recall")
-            !! use recall for outflow
-          end select
+        do isrc = 1, wallo(iwallo)%src_obs
+          if (wallo(iwallo)%src(isrc)%ob_typ == "osrc") then
+            iosrc = wallo(iwallo)%src(isrc)%ob_num
+            select case (wallo(iwallo)%src(isrc)%lim_typ)
+            case ("mon_lim")
+              osrc_om_out(iosrc)%flo = wallo(iwallo)%src(isrc)%limit_mon(time%mo)
+            case ("dtbl")
+              !! use decision table for outflow
+            case ("recall")
+              !! use recall for outflow
+            end select
+          end if
         end do
           
-        !! set demand for each object
-        call wallo_demand (iwallo, itrn, isrc)
+        !! set demand for each transfer object - wallod_out(iwallo)%trn(itrn)%trn_flo
+        call wallo_demand (iwallo, itrn)
+        
+        !! initialize unmet to total demand and subtract as water is withdrawn
+        wallo(iwallo)%trn(itrn)%unmet_m3 = wallod_out(iwallo)%trn(itrn)%trn_flo
+      
+        !! zero demand, withdrawal, and unmet for each source
+        wallod_out(iwallo)%trn(itrn)%src(:) = walloz
+
+        !! compute demand for each source object
+        wdraw_om_tot = hz
+        do isrc = 1, wallo(iwallo)%trn(itrn)%src_num
+          wallod_out(iwallo)%trn(itrn)%src(isrc)%demand = wallo(iwallo)%trn(itrn)%src(isrc)%frac *      &
+                                                                wallod_out(iwallo)%trn(itrn)%trn_flo
+        end do
  
         !! if demand - check source availability and withdraw water
         if (wallod_out(iwallo)%trn(itrn)%trn_flo > 0.) then
             
-          !! check if water is available from each source - set withdrawal and unmet
+          !! check if water is available from each source - set withdrawal and unmet - wallo(iwallo)%trn(itrn)%src(isrc)%hd
           wdraw_om_tot = hz
           do isrc = 1, wallo(iwallo)%trn(itrn)%src_num
             trn_m3 = wallod_out(iwallo)%trn(itrn)%src(isrc)%demand
@@ -80,11 +102,11 @@
                                                   wallod_out(iwallo)%trn(itrn)%src(isrc)%withdr
           end do
         
-          !! transfer water to receiving object from all sources
+          !! transfer water (pipes) to receiving object from all sources
           wallo(iwallo)%trn(itrn)%withdr_tot = 0.
           call wallo_transfer (iwallo, itrn)
         
-          !! add water withdrawn from source to the receiving object 
+          !! add water withdrawn from source to the receiving object  - wal_omd(iwallo)%trn(itrn)%h_tot
           j = wallo(iwallo)%trn(itrn)%rcv%num
           select case (wallo(iwallo)%trn(itrn)%rcv%typ)
           !! irrigation transfer - set amount applied and runoff
@@ -120,31 +142,32 @@
             
             case ("res")
               !! reservoir transfer - maintain reservoir levels at a specified level or required transfer
-              res(j) = res(j) + wal_om(iwallo)%trn(itrn)%h_tot
+              res(j) = res(j) + wal_omd(iwallo)%trn(itrn)%h_tot
             
             case ("aqu")
               !! aquifer transfer - maintain aquifer levels at a specified level or required transfer
-              aqu(j) = aqu(j) + wal_om(iwallo)%trn(itrn)%h_tot
-            
+              aqu(j) = aqu(j) + wal_omd(iwallo)%trn(itrn)%h_tot
+              !! calculate water table depth
+              
             case ("wtp")
               !! wastewater treatment 
-              wtp_om_stor(j) = wtp_om_stor(j) + wal_om(iwallo)%trn(itrn)%h_tot
+              wtp_om_stor(j) = wtp_om_stor(j) + wal_omd(iwallo)%trn(itrn)%h_tot
               !! compute outflow and concentrations
-              call wallo_treatment (iwallo, j)
+              call wallo_treatment (iwallo, itrn, j)
               
             case ("use")
               !! water use (domestic, industrial, commercial) 
-              wuse_om_stor(j) = wuse_om_stor(j) + wal_om(iwallo)%trn(itrn)%h_tot
+              wuse_om_stor(j) = wuse_om_stor(j) + wal_omd(iwallo)%trn(itrn)%h_tot
               !! compute outflow and concentrations
-              call wallo_use (iwallo, j)
+              call wallo_use (iwallo, itrn, j)
               
             case ("stor")
               !! water tower storage - don't change concentrations or compute outflow
-              wtow_om_stor(j) = wtow_om_stor(j) + wal_om(iwallo)%trn(itrn)%h_tot
+              wtow_om_stor(j) = wtow_om_stor(j) + wal_omd(iwallo)%trn(itrn)%h_tot
            
             case ("canal")
               !! canal storage - compute outflow - change concentrations?
-              canal_om_stor(j) = canal_om_stor(j) + wal_om(iwallo)%trn(itrn)%h_tot
+              canal_om_stor(j) = canal_om_stor(j) + wal_omd(iwallo)%trn(itrn)%h_tot
               !! compute losses - evap and seepage, and outflow
               ! call canal()
           end select

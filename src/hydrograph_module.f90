@@ -187,7 +187,10 @@
         !! source and receiving objects
         type (wallo_transfer_object), dimension (:), allocatable :: trn
       end type water_allocation_object
-      type (water_allocation_object), dimension (:), allocatable :: wal_om
+      type (water_allocation_object), dimension (:), allocatable :: wal_omd
+      type (water_allocation_object), dimension (:), allocatable :: wal_omm
+      type (water_allocation_object), dimension (:), allocatable :: wal_omy
+      type (water_allocation_object), dimension (:), allocatable :: wal_oma
         
       !! water withdrawn from an individual source
       type (hyd_output) :: wdraw_om
@@ -201,6 +204,18 @@
       type (hyd_output), dimension (:), allocatable :: wtp_om_out
       !! water treatment plant treated concentrations - input
       type (hyd_output), dimension (:), allocatable :: wtp_om_treat
+      
+      !! amount of organic-mineral removed by treatment plants
+      type (hyd_output), dimension (:), allocatable :: wal_tr_omd
+      type (hyd_output), dimension (:), allocatable :: wal_tr_omm
+      type (hyd_output), dimension (:), allocatable :: wal_tr_omy
+      type (hyd_output), dimension (:), allocatable :: wal_tr_oma
+      
+      !! amount of organic-mineral added by uses
+      type (hyd_output), dimension (:), allocatable :: wal_use_omd
+      type (hyd_output), dimension (:), allocatable :: wal_use_omm
+      type (hyd_output), dimension (:), allocatable :: wal_use_omy
+      type (hyd_output), dimension (:), allocatable :: wal_use_oma
       
       !! water use storage and outflow
       type (hyd_output), dimension (:), allocatable :: wuse_om_stor

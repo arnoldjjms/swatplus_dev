@@ -8,20 +8,19 @@
       !! water source objects
       type water_source_objects
         integer :: num = 0                      !source object number
-        character (len=3) :: ob_typ = ""        !channel(cha), reservoir(res), aquifer(aqu), unlimited source(unl)
+        character (len=6) :: ob_typ = ""        !channel(cha), reservoir(res), aquifer(aqu), unlimited source(unl)
         integer :: ob_num = 0                   !number of the object type
-        character (len=6) :: lim_typ = ""       !selecting how to determine available water - decision table (dtbl), recall file (rec), or monthly limit (mon)
-        character (len=6) :: lim_name = ""      !name of decision table or recall file
+        character (len=10) :: lim_typ = ""      !selecting how to determine available water - decision table (dtbl), recall file (rec), or monthly limit (mon_lim)
+        character (len=25) :: lim_name = ""     !name of decision table or recall file
         integer :: dtbl_num = 0                 !number of decision table for available water (if used)
         integer :: rec_num = 0                  !number of recall file for available water (if used)
         real, dimension (12) :: limit_mon = 0.  !min chan flow(m3/s), min res level(frac prinicpal), max aqu depth(m)
       end type water_source_objects
-      type (water_source_objects), dimension(:), allocatable :: osrc    !source from outside the basin
-
+      
       !! transfer source objects
       type transfer_source_objects
-        character (len=10) :: typ = ""          !source/receiving object type
-        integer :: num = 0                      !number of the source/receiving object
+        character (len=10) :: typ = ""          !source object type
+        integer :: num = 0                      !number of the source object
         character (len=10) :: conv_typ = ""     !conveyance type - pipe or pump
         integer :: conv_num = 0                 !number of the conveyance object
         real :: frac = 0.                       !fraction of transfer supplied by the source
@@ -30,8 +29,8 @@
         
       !! source and receiving objects
       type transfer_receiving_objects
-        character (len=10) :: typ = ""          !source/receiving object type
-        integer :: num = 0                      !number of the source/receiving object
+        character (len=10) :: typ = ""          !receiving object type
+        integer :: num = 0                      !number of the receiving object
       end type transfer_receiving_objects
         
       !! water transfer objects
@@ -80,7 +79,7 @@
         integer :: pump = 0                     !number of pump objects
         character (len=1) :: cha_ob = ""        !y-yes there is a channel object; n-no channel object (only one per water allocation object)
         type (source_output) :: tot             !total demand, withdrawal and unmet for entire allocation object
-        type (water_source_objects), dimension(:), allocatable :: osrc      !dimension by source objects
+        type (water_source_objects), dimension(:), allocatable :: src       !dimension by source objects
         type (water_transfer_objects), dimension(:), allocatable :: trn     !dimension by demand objects
       end type water_allocation
       type (water_allocation), dimension(:), allocatable :: wallo           !dimension by water allocation objects
@@ -131,20 +130,20 @@
       character(len=16), dimension(:), allocatable :: om_treat_name
       character(len=16), dimension(:), allocatable :: om_use_name
       
-      !demand object output
-      type demand_object_output
-        real :: trn_flo = 0.            !m3     |total demand of the demand object
+      !transfer object output
+      type transfer_object_output
+        real :: trn_flo = 0.            !m3     |total transfer of the transfer object
         type (source_output), dimension(:), allocatable :: src
-      end type demand_object_output
+      end type transfer_object_output
       
       !water allocation output
       type water_allocation_output
-        type (demand_object_output), dimension(:), allocatable :: trn
+        type (transfer_object_output), dimension(:), allocatable :: trn
       end type water_allocation_output
-      type (water_allocation_output), dimension(:), allocatable :: wallod_out     !dimension by demand objects
-      type (water_allocation_output), dimension(:), allocatable :: wallom_out     !dimension by demand objects
-      type (water_allocation_output), dimension(:), allocatable :: walloy_out     !dimension by demand objects
-      type (water_allocation_output), dimension(:), allocatable :: walloa_out     !dimension by demand objects
+      type (water_allocation_output), dimension(:), allocatable :: wallod_out     !dimension by transfer objects
+      type (water_allocation_output), dimension(:), allocatable :: wallom_out     !dimension by transfer objects
+      type (water_allocation_output), dimension(:), allocatable :: walloy_out     !dimension by transfer objects
+      type (water_allocation_output), dimension(:), allocatable :: walloa_out     !dimension by transfer objects
       
       type wallo_header            
         character(len=6) :: day      =   "  jday"

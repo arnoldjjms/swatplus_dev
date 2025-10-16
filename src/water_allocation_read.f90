@@ -51,7 +51,10 @@
         if (eof < 0) exit
         
         allocate (wallo(imax))
-        allocate (wal_om(imax))
+        allocate (wal_omd(imax))
+        allocate (wal_omm(imax))
+        allocate (wal_omy(imax))
+        allocate (wal_oma(imax))
         allocate (wallod_out(imax))
         allocate (wallom_out(imax))
         allocate (walloy_out(imax))
@@ -69,37 +72,50 @@
           read (107,*,iostat=eof) header
           if (eof < 0) exit
           
-          allocate (wuse_om_stor(wallo(iwro)%stor))
+          allocate (wuse_om_stor(wallo(iwro)%uses))
           allocate (wtp_om_stor(wallo(iwro)%wtp))
           allocate (wtow_om_stor(wallo(iwro)%stor))
           allocate (canal_om_stor(wallo(iwro)%canal))
-          allocate (wuse_om_out(wallo(iwro)%stor))
+          allocate (wuse_om_out(wallo(iwro)%uses))
           allocate (wtp_om_out(wallo(iwro)%wtp))
           allocate (wtow_om_out(wallo(iwro)%stor))
           allocate (canal_om_out(wallo(iwro)%canal))
-          allocate (wuse_cs_stor(wallo(iwro)%stor))
+          allocate (wuse_cs_stor(wallo(iwro)%uses))
           allocate (wtp_cs_stor(wallo(iwro)%wtp))
           allocate (wtow_cs_stor(wallo(iwro)%stor))
           allocate (canal_cs_stor(wallo(iwro)%canal))
+          allocate (osrc_om_out(wallo(iwro)%out_src))
           num_objs = wallo(iwro)%src_obs
-          allocate (wallo(iwro)%osrc(num_objs))
+          allocate (wallo(iwro)%src(num_objs))
           num_objs = wallo(iwro)%trn_obs
           allocate (wallo(iwro)%trn(num_objs))
-          allocate (wal_om(iwro)%trn(num_objs))
+          allocate (wal_omd(iwro)%trn(num_objs))
+          allocate (wal_omm(iwro)%trn(num_objs))
+          allocate (wal_omy(iwro)%trn(num_objs))
+          allocate (wal_oma(iwro)%trn(num_objs))
           allocate (wallod_out(iwro)%trn(num_objs))
           allocate (wallom_out(iwro)%trn(num_objs))
           allocate (walloy_out(iwro)%trn(num_objs))
           allocate (walloa_out(iwro)%trn(num_objs))
+          
+          allocate (wal_tr_omd(wallo(iwro)%wtp))
+          allocate (wal_tr_omm(wallo(iwro)%wtp))
+          allocate (wal_tr_omy(wallo(iwro)%wtp))
+          allocate (wal_tr_oma(wallo(iwro)%wtp))
+          allocate (wal_use_omd(wallo(iwro)%uses))
+          allocate (wal_use_omm(wallo(iwro)%uses))
+          allocate (wal_use_omy(wallo(iwro)%uses))
+          allocate (wal_use_oma(wallo(iwro)%uses))
                     
           !! read source object data
           do isrc = 1, wallo(iwro)%src_obs
             read (107,*,iostat=eof) i
-            wallo(iwro)%osrc(i)%num = i
+            wallo(iwro)%src(i)%num = i
             if (eof < 0) exit
             backspace (107)
-              read (107,*,iostat=eof) k, wallo(iwro)%osrc(i)%ob_typ, wallo(iwro)%osrc(i)%ob_num,    &
-                                      wallo(iwro)%osrc(i)%lim_typ, wallo(iwro)%osrc(i)%lim_name,    &
-                                      (wallo(iwro)%osrc(i)%limit_mon(k), k=1,12)
+              read (107,*,iostat=eof) k, wallo(iwro)%src(i)%ob_typ, wallo(iwro)%src(i)%ob_num,    &
+                                      wallo(iwro)%src(i)%lim_typ, wallo(iwro)%src(i)%lim_name,    &
+                                      (wallo(iwro)%src(i)%limit_mon(k), k=1,12)
           end do
           
           !! read demand object data
@@ -118,7 +134,10 @@
             allocate (wallo(iwro)%trn(i)%src(num_src))
             allocate (wallo(iwro)%trn(i)%src_wal(num_src))
             wallo(iwro)%trn(i)%src_wal = 0
-            allocate (wal_om(iwro)%trn(i)%src(num_src))
+            allocate (wal_omd(iwro)%trn(i)%src(num_src))
+            allocate (wal_omm(iwro)%trn(i)%src(num_src))
+            allocate (wal_omy(iwro)%trn(i)%src(num_src))
+            allocate (wal_oma(iwro)%trn(i)%src(num_src))
             allocate (wallod_out(iwro)%trn(i)%src(num_src))
             allocate (wallom_out(iwro)%trn(i)%src(num_src))
             allocate (walloy_out(iwro)%trn(i)%src(num_src))
@@ -177,8 +196,8 @@
             do isrc = 1, num_src
               !! find the corresponding source object in the main source list
               do jsrc = 1, wallo(iwro)%src_obs
-                if (wallo(iwro)%trn(i)%src(isrc)%typ == wallo(iwro)%osrc(jsrc)%ob_typ .and.    &
-                      wallo(iwro)%trn(i)%src(isrc)%num == wallo(iwro)%osrc(jsrc)%ob_num) then
+                if (wallo(iwro)%trn(i)%src(isrc)%typ == wallo(iwro)%src(jsrc)%ob_typ .and.    &
+                      wallo(iwro)%trn(i)%src(isrc)%num == wallo(iwro)%src(jsrc)%ob_num) then
                   wallo(iwro)%trn(i)%src_wal(isrc) = jsrc
                   exit
                 end if
@@ -233,8 +252,6 @@
 
       inquire (file='water_treat.wal', exist=i_exist)
       if (.not. i_exist .or. 'water_treat.wal' == "null") then
-        allocate (wtp_om_treat(0:0))
-        allocate (wtp_cs_treat(0:0))
         allocate (wtp(0:0))
       else
       do 
@@ -316,8 +333,6 @@
 
       inquire (file='water_use.wal', exist=i_exist)
       if (.not. i_exist .or. 'water_use.wal' == "null") then
-        allocate (wuse_om_efflu(0:0))
-        allocate (wuse_cs_efflu(0:0))
         allocate (wuse(0:0))
       else
       do 
