@@ -84,7 +84,7 @@
           allocate (wtp_cs_stor(wallo(iwro)%wtp))
           allocate (wtow_cs_stor(wallo(iwro)%stor))
           allocate (canal_cs_stor(wallo(iwro)%canal))
-          allocate (osrc_om_out(wallo(iwro)%out_src))
+          allocate (osrc_om(wallo(iwro)%out_src))
           num_objs = wallo(iwro)%src_obs
           allocate (wallo(iwro)%src(num_objs))
           num_objs = wallo(iwro)%trn_obs
@@ -116,6 +116,10 @@
               read (107,*,iostat=eof) k, wallo(iwro)%src(i)%ob_typ, wallo(iwro)%src(i)%ob_num,    &
                                       wallo(iwro)%src(i)%lim_typ, wallo(iwro)%src(i)%lim_name,    &
                                       (wallo(iwro)%src(i)%limit_mon(k), k=1,12)
+              
+            !! check to see if using recall
+            if (wallo(iwro)%src(i)%lim_typ == "recall") then
+            end if
           end do
           
           !! read demand object data
@@ -385,6 +389,85 @@
       return
     end subroutine water_use_read
     
+    subroutine out_source_read
+      
+      use input_file_module
+      use water_allocation_module
+      use mgt_operations_module
+      use maximum_data_module
+      use hydrograph_module
+      use constituent_mass_module
+      use sd_channel_module
+      
+      implicit none 
+      
+      character (len=80) :: titldum = ""!         |title of file
+      character (len=80) :: header = "" !         |header of file
+      integer :: eof = 0              !           |end of file
+      integer :: imax = 0             !none       |determine max number for array (imax) and total number in file
+      logical :: i_exist              !none       |check to determine if file exists
+      integer :: i = 0                !none       |counter
+      integer :: isrc = 0            !none       |number of water treatment objects
+      integer :: iom = 0              !none       |counter
+      
+      eof = 0
+      imax = 0
+      
+      !! read water allocation inputs
+
+      inquire (file='outside_src.wal', exist=i_exist)
+      if (.not. i_exist .or. 'outside_src.wal' == "null") then
+        allocate (osrc(0:0))
+      else
+      do 
+        open (107,file='outside_src.wal')
+        read (107,*,iostat=eof) titldum
+        if (eof < 0) exit
+        read (107,*,iostat=eof) imax
+        read (107,*,iostat=eof) header
+        db_mx%outside_src = imax
+        if (eof < 0) exit
+        
+        allocate (osrc(imax))
+
+        do isrc = 1, imax
+          read (107,*,iostat=eof) i, osrc(isrc)%name, osrc(isrc)%stor_mx,     &
+                                     osrc(isrc)%lag_days, osrc(isrc)%loss_fr, &
+                                     osrc(isrc)%org_min, osrc(isrc)%pests,    &
+                                     osrc(isrc)%paths, osrc(isrc)%salts,      &
+                                     osrc(isrc)%constit, osrc(isrc)%descrip
+          if (eof < 0) exit
+          
+          !! crosswalk organic mineral with 
+          do iom = 1, db_mx%om_use
+            if (om_use_name(iom) == osrc(isrc)%org_min) then
+              osrc(isrc)%iorg_min = iom
+              exit
+            end if
+          end do
+            
+          !! read pseticide concentrations of treated water
+          if (cs_db%num_pests > 0) then
+            allocate (osrc_cs(isrc)%pest(cs_db%num_pests))
+            read (107,*,iostat=eof) header
+            read (107,*,iostat=eof) osrc_cs(isrc)%pest
+          end if
+          
+          !! read pathogen concentrations of treated water
+          if (cs_db%num_paths > 0) then
+            allocate (osrc_cs(isrc)%path(cs_db%num_paths))
+            read (107,*,iostat=eof) header
+            read (107,*,iostat=eof) osrc_cs(isrc)%path
+          end if
+        end do
+          
+        exit
+      end do
+      end if
+      close(107)
+
+      return
+    end subroutine out_source_read
     
     subroutine water_tower_read
       
@@ -548,6 +631,7 @@
         
         allocate (wtp_om_treat(imax))
         allocate (om_treat_name(imax))
+        allocate (om_osrc_name(imax))
 
         do iom_tr = 1, imax
           read (107,*,iostat=eof) om_treat_name(iom_tr), wtp_om_treat(iom_tr)
@@ -559,6 +643,59 @@
 
       return
     end subroutine om_treat_read
+    
+        
+    subroutine om_osrc_read
+      
+      use input_file_module
+      use water_allocation_module
+      use mgt_operations_module
+      use maximum_data_module
+      use hydrograph_module
+      use constituent_mass_module
+      
+      implicit none 
+      
+      character (len=80) :: titldum = ""!           |title of file
+      character (len=80) :: header = "" !           |header of file
+      integer :: eof = 0              !           |end of file
+      integer :: imax = 0             !none       |determine max number for array (imax) and total number in file
+      logical :: i_exist              !none       |check to determine if file exists
+      integer :: i = 0                !none       |counter
+      integer :: iom_osrc = 0
+      
+      eof = 0
+      imax = 0
+      
+      !! read water allocation inputs
+
+      inquire (file='om_osrc.wal', exist=i_exist)
+      if (.not. i_exist .or. 'om_osrc.wal' == "null") then
+        allocate (osrc_om(0:0))
+        allocate (om_osrc_name(0:0))
+      else
+      do 
+        open (107,file='om_osrc.wal')
+        read (107,*,iostat=eof) titldum
+        if (eof < 0) exit
+        read (107,*,iostat=eof) imax
+        read (107,*,iostat=eof) header
+        db_mx%om_treat = imax
+        if (eof < 0) exit
+        
+        allocate (osrc_om(imax))
+        allocate (om_osrc_name(imax))
+
+        do iom_osrc = 1, imax
+          read (107,*,iostat=eof) om_osrc_name(iom_osrc), osrc_om(iom_osrc)
+        end do
+      end do
+      end if
+      
+      close(107)
+
+      return
+    end subroutine om_osrc_read
     
     
     subroutine om_use_read
