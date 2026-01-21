@@ -247,13 +247,11 @@
             ! add irrigation to yearly sum for dtbl conditioning jga 6-25
             hru(j)%irr_yr = hru(j)%irr_yr + irrig(j)%applied
             
-<<<<<<< HEAD
             if (pco%mgtout == "y") then
               write (2612, *) j, time%yrc, time%mo, time%day_mo, d_tbl%act(iac)%name, "IRRIGATE", phubase(j),  &
                   pcom(j)%plcur(ipl)%phuacc, soil(j)%sw, pl_mass(j)%tot(ipl)%m, pl_mass(j)%rsd_tot, &
                   sol_sumno3(j), sol_sumsolp(j), irrig(j)%demand
             end if
-=======
             if (d_tbl%act(iac)%name=='ponding') then !paddy irrigation
               if (pco%mgtout == "y") then
                 write (2612, *) j, time%yrc, time%mo, time%day_mo, d_tbl%act(iac)%name, "PADDY IRRIGATION", irrig(j)%applied
@@ -265,7 +263,6 @@
                     sol_sumno3(j), sol_sumsolp(j), irrig(j)%applied
               end if
             endif
->>>>>>> 77b722bac716c32f2fba6b4e3f9dd6ea4b008e3d
             
               pcom(j)%dtbl(idtbl)%num_actions(iac) = pcom(j)%dtbl(idtbl)%num_actions(iac) + 1
               pcom(j)%dtbl(idtbl)%days_act(iac) = 1                     !reset days since last action
@@ -386,14 +383,12 @@
                     pcom(j)%plcur(ipl)%idorm = "n"
                     if (d_tbl%act_app(iac) > 0) then
                       call mgt_transplant (d_tbl%act_app(iac))
-<<<<<<< HEAD
                     end if
                     if (pco%mgtout == "y") then
                     write (2612, *) j, time%yrc, time%mo, time%day_mo, pldb(idp)%plantnm, "    PLANT",   &
                       phubase(j), pcom(j)%plcur(ipl)%phuacc, soil(ihru)%sw,                     &
                       pl_mass(j)%tot(ipl)%m, pl_mass(j)%rsd_tot%m, sol_sumno3(j),                  &
                       sol_sumsolp(j), pcom(j)%plg(ipl)%lai, pcom(j)%plcur(ipl)%lai_pot
-=======
                       if (pco%mgtout == "y") then
                         write (2612, *) j, time%yrc, time%mo, time%day_mo, pldb(idp)%plantnm, "TRANSPLANT",   &
                           phubase(j), pcom(j)%plcur(ipl)%phuacc, soil(ihru)%sw,                     &
@@ -407,7 +402,6 @@
                           pl_mass(j)%tot(ipl)%m, pl_mass(j)%rsd_tot%m, sol_sumno3(j),                  &
                           sol_sumsolp(j), pcom(j)%plg(ipl)%lai, pcom(j)%plcur(ipl)%lai_pot
                       end if
->>>>>>> 77b722bac716c32f2fba6b4e3f9dd6ea4b008e3d
                     end if
                   else
                     !! don't plant if the crop is already growing

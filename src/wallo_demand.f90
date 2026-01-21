@@ -1,4 +1,4 @@
-      subroutine wallo_demand (iwallo, itrn)
+subroutine wallo_demand (iwallo, itrn)
       
       use water_allocation_module
       use hru_module
@@ -6,8 +6,6 @@
       use conditional_module
       
       implicit none 
-      
-      external :: actions, conditions
 
       integer, intent (in) :: iwallo            !water allocation object number
       integer, intent (in) :: itrn              !water demand object number

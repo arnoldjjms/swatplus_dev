@@ -1,4 +1,4 @@
-      subroutine wallo_control (iwallo)
+subroutine wallo_control (iwallo)
       
       use water_allocation_module
       use hydrograph_module   !, only : irrig, hz, recall
@@ -11,18 +11,20 @@
       use constituent_mass_module !rtb
       
       implicit none 
-      
-      external :: cs_irrig, recall_nut, salt_irrig, wallo_demand, wallo_transfer, wallo_treatment, wallo_use, wallo_withdraw
 
       integer, intent (inout) :: iwallo     !water allocation object number
       integer :: itrn = 0                   !water demand object number
       integer :: iosrc = 0                  !source object number
       integer :: isrc = 0                   !source object number
-      integer :: irec = 0                   !recall object number
       integer :: j = 0                      !hru number
       integer :: jj = 0                     !variable for passing
+      integer :: irec = 0                   !recall id
+      integer :: dum = 0
       real :: irr_mm = 0.                   !mm     |irrigation applied
-    
+      real :: div_total = 0.                !m3     |cumulative available diversion water
+      real :: div_daily = 0.                !m3     |daily water diverted for irrigation
+      
+
       !! zero demand, withdrawal, and unmet for entire allocation object
       wallo(iwallo)%tot = walloz
       
@@ -38,21 +40,6 @@
         do isrc = 1, wallo(iwallo)%trn(itrn)%src_num
           wallod_out(iwallo)%trn(itrn)%src(isrc) = walloz
           wal_omd(iwallo)%trn(itrn)%src(isrc)%hd = hz
-        end do
-  
-        !! compute flow from outside sources
-        do isrc = 1, wallo(iwallo)%src_obs
-          if (wallo(iwallo)%src(isrc)%ob_typ == "osrc") then
-            iosrc = wallo(iwallo)%src(isrc)%ob_num
-            select case (wallo(iwallo)%src(isrc)%lim_typ)
-            case ("mon_lim")
-              osrc_om_out(iosrc)%flo = wallo(iwallo)%src(isrc)%limit_mon(time%mo)
-            case ("dtbl")
-              !! use decision table for outflow
-            case ("recall")
-              !! use recall for outflow
-            end select
-          end if
         end do
           
         !! set demand for each transfer object - wallod_out(iwallo)%trn(itrn)%trn_flo
