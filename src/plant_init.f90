@@ -17,6 +17,8 @@
       
       implicit none
       
+      external :: pl_partition, pl_root_gro, pl_seed_gro, xmon, jdt
+      
       integer, intent (in) :: init   !           |
       integer, intent (in) :: iihru  !none       |hru number to send to plant_init
       integer :: day_mo = 0
@@ -55,6 +57,7 @@
       real :: matur_frac = 0.        !frac       |fraction to maturity - use hu for annuals and years to maturity for perennials
       real :: f = 0.                 !none       |fraction of plant's maximum lai corresponding to a given fraction of phu
       real :: dd = 0.             !none          |relative distance of the earth from the sun
+
       
       j = iihru
 
@@ -135,6 +138,7 @@
           pl_mass(j)%rsd_tot = pl_mass(j)%rsd_tot + pl_mass(j)%rsd(ipl)
           
           if (bsn_cc%cswat == 2) then
+            !! done in cbn_rsd_decomp subroutine
             !! metabolic residue
             !rsd_meta%m = 0.85 * pcomdb(icom)%pl(ipl)%rsdin
             !rsd_meta%c = 0.357 * pcomdb(icom)%pl(ipl)%rsdin !0.357=0.42*0.85

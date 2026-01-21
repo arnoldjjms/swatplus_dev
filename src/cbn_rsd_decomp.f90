@@ -129,12 +129,12 @@
             if (soil1(j)%pl(ipl)%rsd(k)%p < 1.e-10) soil1(j)%pl(ipl)%rsd(k)%p = 0.0 
 
             !! add mass and carbon to soil organic pools
-            soil1(j)%meta(k)%m = soil1(j)%meta(k)%m + meta_frac * decomp%m
-            soil1(j)%str(k)%m = soil1(j)%str(k)%m + str_frac * decomp%m
-            soil1(j)%lig(k)%m = soil1(j)%lig(k)%m + lig_frac * decomp%m
-            soil1(j)%meta(k)%c = soil1(j)%meta(k)%c + meta_frac * decomp%c
-            soil1(j)%str(k)%c = soil1(j)%str(k)%c + str_frac * decomp%c
-            soil1(j)%lig(k)%c = soil1(j)%lig(k)%c + lig_frac * decomp%c
+            soil1(j)%meta(k)%m = soil1(j)%meta(k)%m + pldb(idp)%res_part_fracs%meta_frac * decomp%m
+            soil1(j)%str(k)%m = soil1(j)%str(k)%m + pldb(idp)%res_part_fracs%str_frac * decomp%m
+            soil1(j)%lig(k)%m = soil1(j)%lig(k)%m + pldb(idp)%res_part_fracs%lig_frac * decomp%m
+            soil1(j)%meta(k)%c = soil1(j)%meta(k)%c + pldb(idp)%res_part_fracs%meta_frac * decomp%c
+            soil1(j)%str(k)%c = soil1(j)%str(k)%c + pldb(idp)%res_part_fracs%str_frac * decomp%c
+            soil1(j)%lig(k)%c = soil1(j)%lig(k)%c + pldb(idp)%res_part_fracs%lig_frac * decomp%c
             
             !! add nitrogen and phosphorus to soil organic pools - assume c/n and c/p ratios
             !! c/n=10 for metabolic and 150 for structural; c/p=100 for metabolic and 1500 for structural
@@ -157,4 +157,4 @@
       end do        ! k = 1, soil(j)%nly
 
       return
-      end subroutine
+      end subroutine cbn_rsd_decomp

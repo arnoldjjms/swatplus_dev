@@ -21,6 +21,8 @@
       type transfer_receiving_objects
         character (len=10) :: typ = ""          !receiving object type
         integer :: num = 0                      !number of the receiving object
+        character (len=25) :: dtbl_rob = ""     !decision table name to set fraction to each receiving object
+        real :: frac = 0.                       !fraction of transfer sent to the receiving object
       end type transfer_receiving_objects
         
       !! water transfer objects
