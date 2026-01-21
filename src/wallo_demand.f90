@@ -44,8 +44,9 @@
         !! input ave daily m3/s and convert to m3/day
         wallod_out(iwallo)%trn(itrn)%trn_flo = 86400. * wallo(iwallo)%trn(itrn)%amount
           
-      !! use recall object for transfer
-      case ("recall")
+      !! use recall object for transfer into the basin 
+        !! measured or SWAT+ modeled flow in; point source inflow
+      case ("trn_in")
         !! use recall object for transfer
         irec = wallo(iwallo)%trn(itrn)%rec_num
         select case (recall(irec)%typ)

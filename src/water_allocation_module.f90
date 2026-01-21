@@ -5,22 +5,12 @@
       real :: trans_m3 = 0.
       real :: trn_m3 = 0.                   !m3     |demand
       
-      !! water source objects
-      type water_source_objects
-        integer :: num = 0                      !source object number
-        character (len=6) :: ob_typ = ""        !channel(cha), reservoir(res), aquifer(aqu), unlimited source(unl)
-        integer :: ob_num = 0                   !number of the object type
-        character (len=10) :: lim_typ = ""      !selecting how to determine available water - decision table (dtbl), recall file (rec), or monthly limit (mon_lim)
-        character (len=25) :: lim_name = ""     !name of decision table or recall file
-        integer :: dtbl_num = 0                 !number of decision table for available water (if used)
-        integer :: rec_num = 0                  !number of recall file for available water (if used)
-        real, dimension (12) :: limit_mon = 0.  !min chan flow(m3/s), min res level(frac prinicpal), max aqu depth(m)
-      end type water_source_objects
-      
       !! transfer source objects
       type transfer_source_objects
         character (len=10) :: typ = ""          !source object type
         integer :: num = 0                      !number of the source object
+        character (len=25) :: dtbl_lim = ""     !decision table name to set withdrawal limit of the source object
+        real :: wdraw_lim = 0.                  !actual withdrawal limit of source object (res-frac principal, aqu-max depth (m); cha-min flow (m3/s))
         character (len=10) :: conv_typ = ""     !conveyance type - pipe or pump
         integer :: conv_num = 0                 !number of the conveyance object
         real :: frac = 0.                       !fraction of transfer supplied by the source
@@ -31,8 +21,6 @@
       type transfer_receiving_objects
         character (len=10) :: typ = ""          !receiving object type
         integer :: num = 0                      !number of the receiving object
-        character (len=25) :: dtbl_rob = ""     !decision table name to set fraction to each receiving object
-        real :: frac = 0.                       !fraction of transfer sent to the receiving object
       end type transfer_receiving_objects
         
       !! water transfer objects
@@ -48,7 +36,6 @@
         character (len=25) :: dtbl_src = ""     !decision table name to allocate sources
         integer :: dtbl_src_num = 0             !number of source allocation decision table
         type (transfer_source_objects), dimension(:), allocatable :: src      !sequential source objects as listed in wallo object
-        integer, dimension(:), allocatable :: src_wal
         integer :: rcv_num = 0                  !number of receiving objects
         character (len=25) :: dtbl_rcv = ""     !decision table name to allocate receiving objects
         type (transfer_receiving_objects) :: rcv  !receiving object
@@ -83,8 +70,7 @@
         integer :: pump = 0                     !number of pump objects
         character (len=1) :: cha_ob = ""        !y-yes there is a channel object; n-no channel object (only one per water allocation object)
         type (source_output) :: tot             !total demand, withdrawal and unmet for entire allocation object
-        type (water_source_objects), dimension(:), allocatable :: src       !dimension by source objects
-        type (water_transfer_objects), dimension(:), allocatable :: trn     !dimension by demand objects
+        type (water_transfer_objects), dimension(:), allocatable :: trn     !dimension by transfer objects
       end type water_allocation
       type (water_allocation), dimension(:), allocatable :: wallo           !dimension by water allocation objects
       type (water_allocation), pointer :: wal

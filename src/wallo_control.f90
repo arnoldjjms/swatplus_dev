@@ -41,55 +41,6 @@
           wallod_out(iwallo)%trn(itrn)%src(isrc) = walloz
           wal_omd(iwallo)%trn(itrn)%src(isrc)%hd = hz
         end do
-  
-        !! compute flow from outside sources
-        do isrc = 1, wallo(iwallo)%src_obs
-          if (wallo(iwallo)%src(isrc)%ob_typ == "osrc") then
-            iosrc = wallo(iwallo)%src(isrc)%ob_num
-            select case (wallo(iwallo)%src(isrc)%lim_typ)
-            case ("mon_lim")
-              osrc_om(iosrc)%flo = wallo(iwallo)%src(isrc)%limit_mon(time%mo)
-            case ("dtbl")
-              !! use decision table for outflow
-            case ("recall")
-              !! use recall for outflow
-              !wallo(iwallo)%trn(itrn)%src(iosrc)%num
-              irec = osrc(iosrc)%iorg_min
-            select case (recall(irec)%typ)
-              case (0)    !subdaily
-                !ts1 = (time%day - 1) * time%step + 1
-                !ts2 = time%day * time%step
-                !ob(icmd)%hyd_flo(ob(icmd)%day_cur,:) = recall(irec)%hyd_flo(ts1:ts2,time%yrs)
-                !ob(icmd)%hd(1) = recall(irec)%hd(time%day,time%yrs)
-              case (1)    !daily
-                if (time%yrc >= recall(irec)%start_yr .and. time%yrc <= recall(irec)%end_yr) then 
-                  osrc_om(irec) = recall(irec)%hd(time%day,time%yrs)
-                  !if negative flow (diversion), then remove nutrient mass
-                  if(recall(irec)%hd(time%day,time%yrs)%flo < 0) then
-                    call recall_nut(irec)
-                  endif
-                else
-                  osrc_om(irec) = hz
-                end if
-              case (2)    !monthly
-                if (time%yrc >= recall(irec)%start_yr .and. time%yrc <= recall(irec)%end_yr) then 
-                    osrc_om(irec) = recall(irec)%hd(time%mo,time%yrs)
-                else
-                    osrc_om(irec) = hz
-                end if
-              case (3)    !annual
-                if (time%yrc >= recall(irec)%start_yr .or. time%yrc <= recall(irec)%end_yr) then
-                  osrc_om(irec) = recall(irec)%hd(1,time%yrs)
-                else
-                  osrc_om(irec) = hz
-                end if
-              case (4)    !average annual
-                osrc_om(irec) = recall(irec)%hd(1,1)
-              end select
-              
-            end select
-          end if
-        end do
           
         !! set demand for each transfer object - wallod_out(iwallo)%trn(itrn)%trn_flo
         call wallo_demand (iwallo, itrn)

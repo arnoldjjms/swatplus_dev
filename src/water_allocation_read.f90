@@ -32,7 +32,6 @@
       integer :: idb_irr = 0
       integer :: ihru = 0
       integer :: iom
-      integer :: isrc_wallo = 0
       integer :: div_found = 0
       
       eof = 0
@@ -86,9 +85,6 @@
           allocate (wtp_cs_stor(wallo(iwro)%wtp))
           allocate (wtow_cs_stor(wallo(iwro)%stor))
           allocate (canal_cs_stor(wallo(iwro)%canal))
-          !allocate (osrc_om(wallo(iwro)%out_src))
-          num_objs = wallo(iwro)%src_obs
-          allocate (wallo(iwro)%src(num_objs))
           num_objs = wallo(iwro)%trn_obs
           allocate (wallo(iwro)%trn(num_objs))
           allocate (wal_omd(iwro)%trn(num_objs))
@@ -108,30 +104,7 @@
           allocate (wal_use_omm(wallo(iwro)%uses))
           allocate (wal_use_omy(wallo(iwro)%uses))
           allocate (wal_use_oma(wallo(iwro)%uses))
-                    
-          !! read source object data
-          do isrc = 1, wallo(iwro)%src_obs
-            read (107,*,iostat=eof) i
-            wallo(iwro)%src(i)%num = i
-            if (eof < 0) exit
-            backspace (107)
-              read (107,*,iostat=eof) k, wallo(iwro)%src(i)%ob_typ, wallo(iwro)%src(i)%ob_num,    &
-                                      wallo(iwro)%src(i)%lim_typ, wallo(iwro)%src(i)%lim_name,    &
-                                      (wallo(iwro)%src(i)%limit_mon(k), k=1,12)
               
-            !! recall option for daily, monthly, or annual mass
-            if (wallo(iwro)%trn(i)%trn_typ == "recall") then
-              !! xwalk with recall database
-              do idb = 1, db_mx%recall_max
-                if (wallo(iwro)%trn(i)%trn_typ_name == recall(idb)%name) then
-                  wallo(iwro)%trn(i)%rec_num = idb
-                  exit
-                end if
-              end do
-            end if
-            
-          end do
-          
           !! read transfer object data
           read (107,*,iostat=eof) header
           if (eof < 0) exit
@@ -145,8 +118,6 @@
             
             num_src = wallo(iwro)%trn(i)%src_num
             allocate (wallo(iwro)%trn(i)%src(num_src))
-            allocate (wallo(iwro)%trn(i)%src_wal(num_src))
-            wallo(iwro)%trn(i)%src_wal = 0
             allocate (wal_omd(iwro)%trn(i)%src(num_src))
             allocate (wal_omm(iwro)%trn(i)%src(num_src))
             allocate (wal_omy(iwro)%trn(i)%src(num_src))
@@ -211,18 +182,6 @@
               wallo(iwro)%trn(i)%amount, wallo(iwro)%trn(i)%right, wallo(iwro)%trn(i)%src_num,        &
               wallo(iwro)%trn(i)%dtbl_src, & !wallo(iwro)%trn(i)%num,                                 &
               (wallo(iwro)%trn(i)%src(isrc), isrc = 1, num_src), wallo(iwro)%trn(i)%rcv
-            
-            !! set src_wal links to main source objects
-            do isrc = 1, num_src
-              !! find the corresponding source object in the main source list
-              do jsrc = 1, wallo(iwro)%src_obs
-                if (wallo(iwro)%trn(i)%src(isrc)%typ == wallo(iwro)%src(jsrc)%ob_typ .and.    &
-                      wallo(iwro)%trn(i)%src(isrc)%num == wallo(iwro)%src(jsrc)%ob_num) then
-                  wallo(iwro)%trn(i)%src_wal(isrc) = jsrc
-                  exit
-                end if
-              end do
-            end do
             
             !! zero output variables for summing
             do isrc = 1, num_src

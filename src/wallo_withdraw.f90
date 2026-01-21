@@ -12,7 +12,6 @@
       integer, intent (in):: iwallo         !water allocation object number
       integer, intent (in) :: itrn          !water demand object number
       integer, intent (in) :: isrc          !source object number
-      integer :: isrc_wallo = 0             !source object number
       integer :: j = 0              !none       |hru number
       integer :: dum = 0
       integer :: irec = 0           !           |recall id
@@ -79,8 +78,7 @@
       !! divert flowing water from channel source
       case ("cha")
         j = wallo(iwallo)%trn(itrn)%src(isrc)%num
-        isrc_wallo = wallo(iwallo)%trn(itrn)%src_wal(isrc)
-        cha_min = wallo(iwallo)%src(isrc_wallo)%limit_mon(time%mo) * 86400.  !m3 = m3/s * 86400s/d
+        cha_min = wallo(iwallo)%trn(itrn)%src(isrc)%wdraw_lim * 86400.  !m3 = m3/s * 86400s/d
         !! amount that can be diverted without falling below low flow limit
         cha_div = ht2%flo - cha_min
         if (trn_m3 < cha_div) then
@@ -97,8 +95,7 @@
         !! reservoir source
         case ("res") 
           j = wallo(iwallo)%trn(itrn)%src(isrc)%num
-          isrc_wallo = wallo(iwallo)%trn(itrn)%src_wal(isrc)
-          res_min = wallo(iwallo)%src(isrc_wallo)%limit_mon(time%mo) * res_ob(j)%pvol
+          res_min = wallo(iwallo)%trn(itrn)%src(isrc)%wdraw_lim * res_ob(j)%pvol
           res_vol = res(j)%flo - trn_m3
           if (res_vol > res_min) then
             rto = trn_m3 / res(j)%flo
@@ -116,8 +113,7 @@
         case ("aqu") 
           if(bsn_cc%gwflow == 0) then !proceed with original code
           j = wallo(iwallo)%trn(itrn)%src(isrc)%num
-          isrc_wallo = wallo(iwallo)%trn(itrn)%src_wal(isrc)
-          avail = (wallo(iwallo)%src(isrc_wallo)%limit_mon(time%mo) - aqu_d(j)%dep_wt)  * aqu_dat(j)%spyld
+          avail = (wallo(iwallo)%trn(itrn)%src(isrc)%wdraw_lim - aqu_d(j)%dep_wt)  * aqu_dat(j)%spyld
           avail = avail * 10000. * aqu_prm(j)%area_ha     !m3 = 10,000*ha*m
           if (trn_m3 < avail) then
             !! only have flow, no3, and minp(solp) for aquifer
