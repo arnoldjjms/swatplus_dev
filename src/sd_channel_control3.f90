@@ -327,11 +327,13 @@
       !! allocate water for transfers that don't include a channel as a source
       if (db_mx%wallo_db > 0) then
         do iwallo = 1, db_mx%wallo_db
-          do while (wallo(iwallo)%trn(wallo(iwallo)%trn_cur)%ch_src == ich)
-            iw = iwallo
-            trn_m3 = ht2%flo
-            if (wallo(iwallo)%trn_cur <= wallo(iwallo)%trn_obs) call wallo_control (iw)
-          end do
+          if (wallo(iwallo)%trn_cur > 0) then
+            do while (wallo(iwallo)%trn(wallo(iwallo)%trn_cur)%ch_src == ich)
+              iw = iwallo
+              trn_m3 = ht2%flo
+              if (wallo(iwallo)%trn_cur <= wallo(iwallo)%trn_obs) call wallo_control (iw)
+            end do
+          end if
         end do
       end if
 
