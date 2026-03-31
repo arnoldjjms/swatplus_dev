@@ -275,11 +275,6 @@
             ! add irrigation to yearly sum for dtbl conditioning jga 6-25
             hru(j)%irr_yr = hru(j)%irr_yr + irrig(j)%applied
             
-            if (pco%mgtout == "y") then
-              write (2612, *) j, time%yrc, time%mo, time%day_mo, d_tbl%act(iac)%name, "IRRIGATE", phubase(j),  &
-                  pcom(j)%plcur(ipl)%phuacc, soil(j)%sw, pl_mass(j)%tot(ipl)%m, pl_mass(j)%rsd_tot, &
-                  sol_sumno3(j), sol_sumsolp(j), irrig(j)%demand
-            end if
             if (d_tbl%act(iac)%name=='ponding') then !paddy irrigation
               if (pco%mgtout == "y") then
                 write (2612, *) j, time%yrc, time%mo, time%day_mo, d_tbl%act(iac)%name, "PADDY IRRIGATION", irrig(j)%applied
