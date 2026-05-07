@@ -60,6 +60,11 @@
       !! set ht1 to incoming daily hydrograph
       ht1 = ob(icmd)%hin
       
+      !! set constituents to incoming loads (rtb salt; rtb cs)
+      if (cs_db%num_tot > 0) then
+        hcs1 = obcs(icmd)%hin(1)
+      end if
+        
       !! zero outgoing flow and sediment - ht2
       ht2 = hz
 
@@ -69,18 +74,17 @@
     
       !! zero daily in/out morphology and sediment budget output
       ch_sed_bud(ich) = ch_sed_budz
-      !ch_in_d = chaz
-      !ch_out_d = chaz
       
-      !! add water transfer
+      !! ****wallo return here**** -- add water transfer
       if (ob(icmd)%trans%flo > 1.e-6) then
+        !! add organic mineral
         ht1 = ht1 + ob(icmd)%trans
         ob(icmd)%trans = hz
-      end if
-      
-      !set constituents to incoming loads (rtb salt; rtb cs)
-      if (cs_db%num_tot > 0) then
-        hcs1 = obcs(icmd)%hin(1)
+        !! add constituents to incoming loads (rtb salt; rtb cs)
+        if (cs_db%num_tot > 0) then
+          hcs1 = hcs1 + obcs(icmd)%trans
+          obcs(icmd)%trans = 0. * obcs(icmd)%trans
+        end if
       end if
       
       chsd_d(ich)%flo_in = ht1%flo / 86400.     !flow for morphology output
@@ -149,11 +153,6 @@
       chsd_d(ich)%flo_in_mm = ht1%flo / (10. * ob(icmd)%area_ha)   !flow in mm
       ch_in_d(ich) = ht1                        !set inflow om hydrograph
       ch_in_d(ich)%flo = ht1%flo / 86400.       !flow for om output - m3/s
-      
-      !! set constituents (rtb salt) to incoming loads
-      if (cs_db%num_tot > 0) then
-        hcs1 = obcs(icmd)%hin(1)
-      end if
       
       !! zero outgoing flow and sediment - ht2
       ht2 = hz
@@ -324,25 +323,11 @@
 
       ich = isdch
             
-      !! allocate water for transfers that don't include a channel as a source
-      if (db_mx%wallo_db > 0) then
-        do iwallo = 1, db_mx%wallo_db
-          if (wallo(iwallo)%trn_cur > 0) then
-            do while (wallo(iwallo)%trn(wallo(iwallo)%trn_cur)%ch_src == ich)
-              iw = iwallo
-              trn_m3 = ht2%flo
-              if (wallo(iwallo)%trn_cur <= wallo(iwallo)%trn_obs) call wallo_control (iw)
-            end do
-          end if
-        end do
+      !! if channel is a POD, allocate water for users and adjust flow in channel accordingly
+      if (sd_ch(ich)%wallo_pod > 0) then
+        call wallo_control (sd_ch(ich)%wallo_pod)
       end if
 
-    ! if (ob(icmd)%hyd_flo(1,1) > 1.e-6) then
-    !    if (ht2%flo / ob(icmd)%hyd_flo(1,1) > 1.5) then
-    !      a = 1.
-    !    end if
-    !  end if
-      
       !! set outflow hyd to ht2 after diverting water
       ob(icmd)%hd(1) = ht2
       

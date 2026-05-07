@@ -45,16 +45,16 @@
         do ic = 1, imax
           read (107,*,iostat=eof) i, canal(ic)%name, canal(ic)%w_sta, canal(ic)%init, canal(ic)%dtbl,       &
               canal(ic)%ddown_days, canal(ic)%w, canal(ic)%d, canal(ic)%s, canal(ic)%ss, canal(ic)%sat_con, &
-                                                                                 canal(ic)%loss_fr, num_aqu
+                                                                                canal(ic)%evap_co, num_aqu
           if (eof < 0) exit
           backspace (107)
           
           !! allocate and read aquifer loss data
-          allocate (canal(ic)%aqu_loss(num_aqu))
+          allocate (canal(ic)%aqu_loss_fr(num_aqu))
           
           read (107,*,iostat=eof) i, canal(ic)%name, canal(ic)%w_sta, canal(ic)%init, canal(ic)%dtbl,       &
               canal(ic)%ddown_days, canal(ic)%w, canal(ic)%d, canal(ic)%s, canal(ic)%ss, canal(ic)%sat_con, &
-              canal(ic)%loss_fr, canal(ic)%num_aqu, (canal(ic)%aqu_loss(iaq), iaq = 1, num_aqu)
+              canal(ic)%evap_co, canal(ic)%num_aqu, (canal(ic)%aqu_loss_fr(iaq), iaq = 1, num_aqu)
           
           !! crosswalk with weather station
           

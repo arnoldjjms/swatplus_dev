@@ -31,29 +31,17 @@
       end type manure_database        
       type (manure_database), dimension(:), allocatable :: manure_db
       
-      !! organic mineral characteristics of manure types in manure database
-      type manure_organic_mineral
-        character(len=64) ::  name = " "     !! crosswalk with manure_db%org_min
-        character(len=64) ::  region = " "
-        character(len=64) ::  source = " "
-        character(len=64) ::  typ = " "
-        real :: pct_moisture = 0.0           !! percent    |% moisture content of manure
-        real :: pct_solids = 0.0             !! percent    |% solids
-        real :: tot_c = 0.0                  !! kg C/ton   |total carbon content of manure
-        real :: tot_n = 0.0
-        real :: inorg_n = 0.0
-        real :: org_n = 0.0
-        real :: tot_p2o5 = 0.0
-        real :: inorg_p2o5 = 0.0
-        real :: org_p2o5 = 0.0
-        real :: inorg_p = 0.0
-        real :: org_p = 0.0
-        real :: solids = 0.0
-        real :: water = 0.0
-        character(len=32) :: units = " "
-        integer :: sample_size = 0
-        character(len=32) :: summary_level = " "
-        character(len=64) :: data_source = " "
+      type manure_attributes
+        character(len=64) ::  name = " "  !! Identifier used to crosswalk fertilizer entries, constructed from
+                                          !! manure_region, manure_source, and manure_type
+        real :: frac_water = 0.       !! kg water/kg manure |frac of manure which is water
+        real :: fcbn = 0.0            !! kg C/kg frt        |frac of fert which is carbon
+        real :: fminn = 0.            !! kg minN/kg frt     |frac of fert which is mineral nitrogen (NO3+NH3)
+        real :: fminp = 0.            !! kg minN/kg frt     |frac of fert which is mineral phoshorus
+        real :: forgn = 0.            !! kg orgN/kg frt     |frac of fert which is org N
+        real :: forgp = 0.            !! kg orgP/kg frt     |frac of fert which is org P
+        real :: fnh3n = 0.            !! kg NH3-N/kg N      |frac of mineral N content of fert which is NH3
+        character(len=64) :: description = " "
       end type  manure_attributes
       type (manure_attributes), dimension(:),allocatable :: manure_om
       

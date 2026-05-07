@@ -170,38 +170,33 @@
       type (hyd_output) :: bch_out_a
       type (hyd_output) :: chomz
       
-      !! source and receiving objects
-      type wallo_source_object
-        type (hyd_output) :: hd
-      end type wallo_source_object
-        
-      !! source and receiving objects
-      type wallo_transfer_object
-        !! total for transfer object
-        type (hyd_output) :: h_tot
-        type (wallo_source_object), dimension (:), allocatable :: src
-      end type wallo_transfer_object
+      !! water allocation hydrographs
+      !! POU inflow from PODs and outflow to PORs for transferring and outputting
+      type pou_daily_hydrographs
+        type (hyd_output) :: pods                              !! total inflow hydrograph from all PODs
+        type (hyd_output) :: pors                              !! total outflow hydrograph to all PORs
+        type (hyd_output), dimension (:), allocatable :: pod   !! inflow hyd from each POD
+        type (hyd_output), dimension (:), allocatable :: por   !! outflow hyd to each POR
+      end type pou_daily_hydrographs
+      type (pou_daily_hydrographs), dimension (:), allocatable :: poud_om  !! daily hydrographs
+      type (pou_daily_hydrographs), dimension (:), allocatable :: poum_om  !! monthly hydrographs
+      type (pou_daily_hydrographs), dimension (:), allocatable :: pouy_om  !! yearly hydrographs
+      type (pou_daily_hydrographs), dimension (:), allocatable :: poua_om  !! ave annual hydrographs
       
-      !! source and receiving objects
-      type water_allocation_object
-        !! source and receiving objects
-        type (wallo_transfer_object), dimension (:), allocatable :: trn
-      end type water_allocation_object
-      type (water_allocation_object), dimension (:), allocatable :: wal_omd
-      type (water_allocation_object), dimension (:), allocatable :: wal_omm
-      type (water_allocation_object), dimension (:), allocatable :: wal_omy
-      type (water_allocation_object), dimension (:), allocatable :: wal_oma
-        
-      !! water withdrawn from an individual source
-      type (hyd_output) :: wdraw_om
-      !! total water withdrawn from all sources
-      type (hyd_output) :: wdraw_om_tot
-      !! outflow from an water allocation object - wtp or use
-      type (hyd_output) :: outflo_om
+      !! POD delivery to POUs - for outputting
+      type pod_daily_hydrographs
+        type (hyd_output) :: pous                              !! total delivery hydrograph from all PODs
+        type (hyd_output), dimension (:), allocatable :: pou   !! delivery hyd from each POD
+      end type pod_daily_hydrographs
+      type (pod_daily_hydrographs), dimension (:), allocatable :: podd_om  !! daily hydrographs
+      type (pod_daily_hydrographs), dimension (:), allocatable :: podm_om  !! monthly hydrographs
+      type (pod_daily_hydrographs), dimension (:), allocatable :: pody_om  !! yearly hydrographs
+      type (pou_daily_hydrographs), dimension (:), allocatable :: poda_om  !! ave annual hydrographs
       
       !! water treatment plant storage and outflow
       type (hyd_output), dimension (:), allocatable :: wtp_om_stor
       type (hyd_output), dimension (:), allocatable :: wtp_om_out
+      
       !! water treatment plant treated concentrations - input
       type (hyd_output), dimension (:), allocatable :: wtp_om_treat
       
@@ -236,6 +231,7 @@
       !! water tower storage and outflow
       type (hyd_output), dimension (:), allocatable :: wtow_om_stor
       type (hyd_output), dimension (:), allocatable :: wtow_om_out
+      !! ****CHECK ALL THESE****
        
       type object_output
         character (len=10) :: name = ""
@@ -428,6 +424,10 @@
       
       !recall hydrograph inputs
       type recall_hydrograph_inputs
+        character(len=25) :: name = ""
+        character(len=13) :: units = ""          !mass, conc
+        character(len=13) :: tstep = ""          !day, mo, yr
+        character(len=25) :: filename = ""
         !hd and hyd_flo units are in cms and mg/L
         type (hyd_output), dimension (:,:), allocatable :: hd   !m3/s for flow  |input total hyd for daily, monthly, annual and exco
         real, dimension (:,:), allocatable :: hyd_flo           !m3/s           |input total flow hyd only for subdaily recall

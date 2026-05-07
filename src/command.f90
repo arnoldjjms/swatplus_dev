@@ -71,22 +71,8 @@
       real :: sumflo = 0.
 
       icmd = sp_ob1%objs
-      wallo(:)%trn_cur = 1
-      res_ob(:)%wallo_call = 0
       
       do while (icmd /= 0)
-          
-        !! allocate water for transfers that don't include a channel as a source
-        !! check here in case channel is last object
-        if (db_mx%wallo_db > 0) then
-          do iwallo = 1, db_mx%wallo_db  
-            do while (wallo(iwallo)%trn_cur > 0)
-              if (wallo(iwallo)%trn(wallo(iwallo)%trn_cur)%ch_src > 0) exit
-              iw = iwallo
-              if (wallo(iwallo)%trn_cur <= wallo(iwallo)%trn_obs) call wallo_control (iw)
-            end do
-          end do
-        end if
           
         if (ob(icmd)%typ == "hru" .or. ob(icmd)%typ == "ru") then
           !! hru and ru can have hyrdographs that lag into next day
@@ -258,7 +244,7 @@
                 hyd_flo(:) = ob(iob)%hd(ihyd)%flo / time%step
               case ("recall")   ! point source inflow
                 irec = ob(iob)%num
-                if (recall_db(irec)%org_min%tstep == "sub") then    !subdaily
+                if (recall(irec)%tstep == "sub") then    !subdaily
                   hyd_flo(:) = ob(iob)%hyd_flo(ob(iob)%day_cur,:)
                 else                                ! monthly, yearly, and ave annual
                   hyd_flo(:) = ob(iob)%hd(1)%flo / time%step
@@ -331,7 +317,7 @@
               
           case ("recall")   ! recall hydrograph
             irec = ob(icmd)%num
-            select case (recall_db(irec)%org_min%tstep)
+            select case (recall(irec)%tstep)
               case ("sub")    !subdaily
                 ts1 = (time%day - 1) * time%step + 1
                 ts2 = time%day * time%step

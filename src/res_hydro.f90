@@ -242,7 +242,7 @@
             case ("meas")
               !! measured outflow or release
               irel = int(d_tbl%act_typ(iac))
-              select case (recall_db(irel)%org_min%tstep)
+              select case (recall(irel)%tstep)
               case ("day")    !daily
                 ht2%flo = ht2%flo + recall(irel)%hd(time%day,time%yrs)%flo / nstep
               case ("mo")    !monthly

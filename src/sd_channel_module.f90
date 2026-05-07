@@ -166,7 +166,7 @@
         character(len=25) :: name = "default"
         integer :: props = 0
         integer :: obj_no = 0
-        integer :: wallo = 0                !water allocation object number
+        integer :: wallo_pod = 0            !POD (point of delivery) number for water allocation - 0 if not POD
         integer :: aqu_link = 0             !aquifer the channel is linked to
         integer :: aqu_link_ch = 0          !sequential channel number in the aquifer
         character(len=25) :: region = ""

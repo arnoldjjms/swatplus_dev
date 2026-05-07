@@ -34,12 +34,7 @@
           end do
           db_mx%recalldb_max = imax
           
-      allocate (recall_db(0:imax))          
-      allocate (recall(0:imax))
-      allocate (rec_d(imax))
-      allocate (rec_m(imax))
-      allocate (rec_y(imax))
-      allocate (rec_a(imax))
+      allocate (recall_db(0:imax))
       
       rewind (107)
       read (107,*,iostat=eof) titldum
@@ -54,11 +49,9 @@
         read (107,*,iostat = eof) k, recall_db(i)%name, recall_db(i)%org_min,  &
                                      recall_db(i)%pest, recall_db(i)%path,     &
                                      recall_db(i)%hmet, recall_db(i)%salt,     &
-                                     recall_db(i)%constit
+                                     recall_db(i)%constit, recall_db(i)%descrip
         if (eof < 0) exit
-                  
-        !! read all organic mineral files
-        call recall_read (i)
+                
       end do
       
     end do
@@ -117,28 +110,46 @@
       istep = 0
       idaystep = 0
 
-      do 
-        open (108,file = recall_db(irec)%org_min%name)
+      !read all recall files
+      inquire (file="recall.rec", exist=i_exist)
+      if (i_exist .or. "recall.rec" /= "null") then
+      do
+        open (107,file="recall.rec")
+        read (107,*,iostat=eof) titldum
+        if (eof < 0) exit
+        read (107,*,iostat=eof) header
+        if (eof < 0) exit
+        imax = 0
+        do while (eof == 0)
+          read (107,*,iostat=eof) i
+          if (eof < 0) exit
+          imax = Max(imax,i) 
+        end do
+        db_mx%recallom_max = imax
+                  
+        allocate (recall(0:imax))
+        allocate (rec_d(imax))
+        allocate (rec_m(imax))
+        allocate (rec_y(imax))
+        allocate (rec_a(imax))
+      
+      do ii = 1, imax
+        read (107,*,iostat=eof) i
+        if (eof < 0) exit
+        backspace (107)
+        read (107,*,iostat = eof) k, recall(i)%name, recall(i)%units,      &
+                                     recall(i)%tstep, recall(i)%filename
+        if (eof < 0) exit
+          
+      !! read the organic mineral recall file
+        open (108,file = recall(irec)%filename)
         read (108,*,iostat=eof) titldum
         if (eof < 0) exit
         read (108,*,iostat=eof) nbyr
         if (eof < 0) exit
         read (108,*,iostat=eof) header
-        exit 
-      end do
         
-      !! check if the org mineral has already been used in a previous recall object
-      do iprev = 1, irec
-        if (recall_db(irec)%org_min%name == recall_db(irec)%org_min%name) then
-          recall_db(irec)%iorg_min = iprev
-          exit
-        end if
-      end do
-          
-      !! if new org mineral, then read
-      if (recall_db(irec)%iorg_min == irec) then
-                
-        select case (recall_db(irec)%org_min%tstep)
+        select case (recall(irec)%tstep)
             
           case ("sub") !! subdaily
             allocate (recall(irec)%hyd_flo(time%step*366,time%nbyr), source = 0.)
@@ -176,7 +187,6 @@
         end if
         
         !! read and store data
-        do 
           iyr1 = iyr
           read (108,*,iostat=eof) jday1, mo1, day_mo, iyr
           if (eof < 0) exit
@@ -190,7 +200,7 @@
             iyr1 = iyr
           
           !! read data for each time step
-          select case (recall_db(irec)%org_min%tstep)
+          select case (recall(irec)%tstep)
             case ("sub") !! subdaily
               !! convert m3/s -> m3
               recall(irec)%hyd_flo(istep,iyrs) = ht1%flo * 86400. / time%step
@@ -217,14 +227,14 @@
               read (108,*,iostat=eof) jday, mo, day_mo, iyr, ob_typ, ob_name, ht1
               recall(irec)%hd(1,iyrs) = ht1
             end select
-            
-        end do    !! read and store data
         
         !! save end year of recall data
         recall(i)%end_yr = iyr
         close (108)
         
-      end if    !! if new org mineral, then read
+        end do    !! loop for recall_om files (ii = 1, imax)
+      end do
+      end if      !! if file exists for recall.rec
       
       !read all rec_pest files
       inquire (file="pest.com", exist=i_exist)

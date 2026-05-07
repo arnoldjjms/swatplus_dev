@@ -91,6 +91,11 @@
       !! add recharge to aquifer storage
       aqu_d(iaq)%stor = aqu_d(iaq)%stor + aqu_d(iaq)%rchrg
       
+      !! if channel is a POD, allocate water for users and adjust flow in channel accordingly
+      if (aqu_d(iaq)%wallo_pod > 0) then
+        call wallo_control (aqu_d(iaq)%wallo_pod)
+      end if
+
       !! compute groundwater depth from surface
       aqu_d(iaq)%dep_wt = aqu_dat(iaq)%dep_bot - (aqu_d(iaq)%stor / (1000. * aqu_dat(iaq)%spyld))
       aqu_d(iaq)%dep_wt = max (0., aqu_d(iaq)%dep_wt)
@@ -156,6 +161,13 @@
       aqu_d(iaq)%no3_st = aqu_d(iaq)%no3_st - aqu_d(iaq)%no3_seep
       ob(icmd)%hd(2)%no3 = aqu_d(iaq)%no3_seep * ob(icmd)%area_ha
       
+      !! compute mineral p flow (constant concentration) from aquifer - m^3 * ppm * 1000 kg/m^3 = 1/1000
+      aqu_d(iaq)%minp = ob(icmd)%hin%flo * aqu_dat(iaq)%minp / 1000.
+      ob(icmd)%hd(1)%solp = aqu_d(iaq)%minp
+      
+      !! temperature of aquifer flow
+      ob(icmd)%hd(1)%temp = w_temp%gw
+
       !rtb salt
       !compute salt recharge into the aquifer
       do m=1,cs_db%num_salts
@@ -252,13 +264,6 @@
         acsb_d(iaq)%cs(ics)%conc = cs_aqu(iaq)%csc(ics) !store concentration for output
       enddo
       
-      !! compute mineral p flow (constant concentration) from aquifer - m^3 * ppm * 1000 kg/m^3 = 1/1000
-      aqu_d(iaq)%minp = ob(icmd)%hin%flo * aqu_dat(iaq)%minp / 1000.
-      ob(icmd)%hd(1)%solp = aqu_d(iaq)%minp
-      
-      !! temperature of aquifer flow
-      ob(icmd)%hd(1)%temp = w_temp%gw
-
       !! compute fraction of flow to each channel in the aquifer
       !! if connected to aquifer - add flow
       if (db_mx%aqu2d > 0) then

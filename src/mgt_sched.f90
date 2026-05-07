@@ -369,8 +369,8 @@
               endif
             else
               call pl_fert (ifrt, frt_kg, ifertop)
-              call salt_fert(j,ifrt,frt_kg,ifertop) !rtb salt 
-              call cs_fert(j,ifrt,frt_kg,ifertop) !rtb cs
+              !call salt_fert(j,ifrt,frt_kg,ifertop) !rtb salt 
+              !call cs_fert(j,ifrt,frt_kg,ifertop) !rtb cs
               if (pco%mgtout == "y") then
                 write (2612,*) j, time%yrc, time%mo, time%day_mo, mgt%op_char, "    FERT ",         &
                   phubase(j), pcom(j)%plcur(ipl)%phuacc, soil(j)%sw, pl_mass(j)%tot(ipl)%m,         &

@@ -16,14 +16,14 @@
       outflo_om = wuse_om_efflu(iom)
       
       !! treated outflow is a fraction of withdrawal
-      outflo_om%flo = outflo_om%flo * wal_omd(iwallo)%trn(itrn)%h_tot%flo
+      outflo_om%flo = outflo_om%flo * poud_om(ipou)%pors%flo
       
       !! convert concentration to mass
       call hyd_convert_conc_to_mass (outflo_om)
       wuse_om_out(iuse) = outflo_om
       
       !! amount that is added
-      wal_use_omd(iuse) = wuse_om_out(iuse) - wal_omd(iwallo)%trn(itrn)%h_tot
+      wal_use_omd(iuse) = wuse_om_out(iuse) - poud_om(ipou)%pors
       
       !! constituents effluent - convert concentration to mass
       if (cs_db%num_tot > 0) then

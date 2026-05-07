@@ -786,7 +786,42 @@
               trn_m3 = d_tbl%act(iac)%const * ht2%flo
                 
             end select
-                   
+             
+          !! set the transfer amount - or duty - or water demand
+          case ("duty") 
+            j = d_tbl%act(iac)%ob_num
+            if (j == 0) j = ob_cur
+            
+            trn_m3 = d_tbl%act(iac)%const
+                
+          !! set the transfer fraction from each object
+          case ("duty_fr") 
+            j = d_tbl%act(iac)%ob_num
+            if (j == 0) j = ob_cur
+            
+            ! option to set tile flow directed toward the saturated buffer hru
+            select case (d_tbl%act(iac)%option)
+                
+            case ("fr1")    !! fraction of duty from POD source object 1
+              trn_fr(1) = d_tbl%act(iac)%const
+
+            case ("fr2")    !! fraction of duty from POD source object 2
+              trn_fr(2) = d_tbl%act(iac)%const
+              
+            case ("fr3")    !! fraction of duty from POD source object 3
+              trn_fr(3) = d_tbl%act(iac)%const
+
+            case ("fr4")    !! fraction of duty from POD source object 4
+              trn_fr(4) = d_tbl%act(iac)%const 
+              
+            case ("fr5")    !! fraction of duty from POD source object 5
+              trn_fr(5) = d_tbl%act(iac)%const
+
+            case ("fr6")    !! fraction of duty from POD source object 6
+              trn_fr(6) = d_tbl%act(iac)%const
+             
+            end select
+                
           !! set the amount of water to be transferred in water allocation
           case ("transfer") 
             j = d_tbl%act(iac)%ob_num

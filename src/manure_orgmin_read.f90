@@ -19,12 +19,12 @@
       imax = 0
       mfrt = 0
       
-      inquire (file="manure_om.mnu", exist=i_exist)
-      if (.not. i_exist .or. "manure_om.mnu" == "null") then
-         allocate (manure_db(0:0))
+      inquire (file="manure_om.frt", exist=i_exist)
+      if (.not. i_exist .or. "manure_om.frt" == "null") then
+         allocate (manure_om(0:0))
       else
       do  
-        open (107,file="manure_om.mnu")
+        open (107,file="manure_om.frt")
         read (107,*,iostat=eof) titldum
         if (eof < 0) exit
         read (107,*,iostat=eof) header
@@ -44,14 +44,10 @@
         if (eof < 0) exit
         
         do it = 1, imax
-          read (107,*,iostat=eof) manure_om(it)%name, manure_om(it)% region,             &
-            manure_om(it)%source, manure_om(it)%typ,manure_om(it)%pct_moisture,          &
-            manure_om(it)%pct_solids, manure_om(it)%tot_c, manure_om(it)%tot_n,          &
-            manure_om(it)%inorg_n, manure_om(it)%org_n, manure_om(it)%tot_p2o5,          &
-            manure_om(it)%inorg_p2o5, manure_om(it)%org_p2o5, manure_om(it)%inorg_p,     &
-            manure_om(it)%org_p, manure_om(it)%solids, manure_om(it)%water,              &
-            manure_om(it)%units, manure_om(it)%sample_size, manure_om(it)%summary_level, &
-            manure_om(it)%data_source
+          read (107,*,iostat=eof) manure_om(it)%name, manure_om(it)%frac_water,     &
+            manure_om(it)%fcbn, manure_om(it)%fminn, manure_om(it)%fminp,           &
+            manure_om(it)%forgn, manure_om(it)%forgp, manure_om(it)%fnh3n,          &
+            manure_om(it)%description
           if (eof < 0) exit
         end do
        exit

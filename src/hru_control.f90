@@ -168,6 +168,11 @@
         ht1 = hz
         ht2 = hz
 
+        !! if channel is a POD, allocate water for users and adjust flow in channel accordingly
+        if (hru(j)%wallo_pod > 0) then
+          call wallo_control (hru(j)%wallo_pod)
+        end if
+
         !! check auto operations
         if (sched(isched)%num_autos > 0) then
           do iauto = 1, sched(isched)%num_autos
@@ -533,11 +538,6 @@
               call nut_orgn
             end if
         
-            !! C-Farm (Armen) c and organic n in runoff
-            if (bsn_cc%cswat == 1) then
-              call nut_orgnc
-            end if
-      
             !! SWAT-C Xuesong -- c and organic n in runoff
             if (bsn_cc%cswat == 2 .or. bsn_cc%cswat == 3) then
               call nut_orgnc2

@@ -29,20 +29,16 @@ subroutine wallo_demand (iwallo, itrn)
         case ("osrc")
         !! use recall object for transfer
         iom = recall_db(isrc)%iorg_min
-        select case (recall_db(iom)%org_min%tstep)
+        select case (recall(iom)%tstep)
           case ("day")    !daily
             wallod_out(iwallo)%trn(itrn)%trn_flo = recall(iom)%hd(time%day,time%yrs)%flo
           case ("mo")    !monthly
             wallod_out(iwallo)%trn(itrn)%trn_flo = recall(iom)%hd(time%mo,time%yrs)%flo
           case ("yr")    !yearly
             wallod_out(iwallo)%trn(itrn)%trn_flo = recall(iom)%hd(1,time%yrs)%flo
+          case ("const") !constant
+            wallod_out(iwallo)%trn(itrn)%trn_flo = exco(iom)%flo
         end select
-        
-        !! source object is an out of basin flowing source - measured flow or SWAT+ output
-        case ("osrc_a")
-        !! use recall object for transfer
-        iom = wallo(iwallo)%trn(itrn)%osrc(1)%aa
-        wallod_out(iwallo)%trn(itrn)%trn_flo = exco(iom)%flo
         
         !! source object is a water treatment plant
         case ("wtp")

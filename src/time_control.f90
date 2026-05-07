@@ -239,6 +239,101 @@
             end do
           end do
 
+          !! Outside Source Objects - POD Objects
+          
+          !! set out of basin availability if recall file is used - typically measured flow or SWAT+ output
+          do iosrc = 1, sp_ob%osrc
+            !! use recall object for transfer
+            ipod = osrc(iosrc)%wallo_pod
+            iom = recall_db(iosrc)%iorg_min
+            select case (recall(iom)%tstep)
+              case ("day")    !daily
+                osrc(iosrc) = recall(iom)%hd(time%day,time%yrs)
+              case ("mo")    !monthly
+                osrc(iosrc) = recall(iom)%hd(time%mo,time%yrs)
+              case ("yr")    !yearly
+                osrc(iosrc) = recall(iom)%hd(1,time%yrs)
+              case ("const") !constant
+                osrc(iosrc) = exco(iom)
+            end select
+            !! add option for dtbl and const  
+            
+            !! allocate and deliver water at start of day
+            call wallo_control(ipod)
+          end do
+        
+          !! allocate and deliver water at start of day for canals
+          do ican = 1, sp_ob%canal 
+            ipod = canal(ican)%wallo_pod
+            call wallo_control(ipod)
+          end do
+          
+          !! allocate and deliver water at start of day for canals
+          do istor = 1, sp_ob%stor 
+            ipod = wtow(istor)%wallo_pod
+            call wallo_control(ipod)
+          end do
+          
+          !! zero water allocation objects and set reset POU finishes to no
+          
+          !! set water allocation duty (right) and fractions from each POD and to each POR
+          do ipou = 1, sp_ob%pou
+            !! zero water allocation objects and set reset POU finishes to no
+          
+            !! compute duty if decision table is used for total demand
+            if (pou(ipou)%dtbl_mx_num > 0) then
+              if (pou(ipou)%typ == "irr")then
+                id = pou(ipou)%typ_num
+              else
+                id = pou(ipou)%dtbl_mx_num
+              end if
+              if (id > 0) then
+                if (pou(ipou)%typ == "irr")then
+                  id = pou(ipou)%typ_num
+                  d_tbl => dtbl_lum(id)
+                else
+                  id = pou(ipou)%dtbl_mx_num
+                  d_tbl => dtbl_flo(id)
+                end if
+                call conditions (j, id)
+                call actions (j, iob, id)
+                !! reset demand or duty for transfer object
+                pou(ipou)%rate_max = trn_m3 * 86400. !convert from m3/s to m3/day
+              end if
+            end if
+          
+            !! compute source fractions if decision table is used for POD fractions 
+            if (pou(ipou)%dtbl_pod_fr_num > 0) then
+              id = pou(ipou)%dtbl_pod_fr_num
+              if (id > 0) then
+                d_tbl => dtbl_flo(id)
+                call conditions (j, id)
+                call actions (j, iob, id)
+                !! reset source fractions for transfer object
+                do ipod = 1, pou(ipou)%pods
+                  pou(ipou)%pod(ipod)%frac = trn_fr(ipod)
+                  pou(ipou)%pod(ipod)%duty = trn_fr(ipod) * pou(ipou)%rate_max
+                  pou(ipou)%pod(ipod)%deliv = 0.
+                end do
+              end if
+            end if
+          
+            !! compute source fractions if decision table is used for POR fractions
+            if (pou(ipou)%dtbl_por_fr_num > 0) then 
+            id = pou(ipou)%dtbl_por_fr_num
+              if (id > 0) then
+                d_tbl => dtbl_flo(id)
+                call conditions (j, id)
+                call actions (j, iob, id)
+                !! reset source fractions for transfer object
+                do ipor = 1, pou(ipou)%pors
+                  pou(ipou)%por(ipor)%frac = trn_fr(ipor)
+                end do
+              end if
+            end if
+          
+          end do    !POU loop
+          
           !! allocate manure to appropriate demand objects
           if (db_mx%mallo_db > 0) then
             do imallo = 1, db_mx%mallo_db
