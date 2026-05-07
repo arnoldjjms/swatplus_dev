@@ -31,6 +31,7 @@
       end type manure_database        
       type (manure_database), dimension(:), allocatable :: manure_db
       
+      !! manure organic matter attributes database - used to allocate manure applications to soil carbon and nitrogen pools
       type manure_attributes
         character(len=64) ::  name = " "  !! Identifier used to crosswalk fertilizer entries, constructed from
                                           !! manure_region, manure_source, and manure_type
@@ -41,7 +42,7 @@
         real :: forgn = 0.            !! kg orgN/kg frt     |frac of fert which is org N
         real :: forgp = 0.            !! kg orgP/kg frt     |frac of fert which is org P
         real :: fnh3n = 0.            !! kg NH3-N/kg N      |frac of mineral N content of fert which is NH3
-        character(len=64) :: description = " "
+        character(len=64) :: description = " "      !!  na  |description of manure type
       end type  manure_attributes
       type (manure_attributes), dimension(:),allocatable :: manure_om
       

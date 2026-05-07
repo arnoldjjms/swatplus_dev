@@ -96,6 +96,7 @@
                   pcom(j)%plcur(ipl)%gro = "y"
                   pcom(j)%plcur(ipl)%idorm = "n"
                   call mgt_plantop
+                  !itr = 0
                   if (mgt%op3 > 1.e-6) then
                     do idb = 1, db_mx%transplant
                       if (mgt%op_plant == transpl(idb)%name) then

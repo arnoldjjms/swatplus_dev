@@ -1,5 +1,9 @@
       subroutine wallo_canal (iwallo, itrn, ican)
-      
+
+!!    ~ ~ ~ PURPOSE ~ ~ ~
+!!    Routes water through a wallo canal: computes outflow, applies loss,
+!!    and distributes canal seepage to aquifer (gwflow grid cells or 1-D aquifer).
+
       use water_allocation_module
       use hydrograph_module
       use constituent_mass_module
@@ -22,15 +26,15 @@
       !! compute outflow from canal using decision table or simple lag
       if (canal(ican)%dtbl == "null") then
         !! simple drawdown days
-          wallod_out(iwallo)%trn(itrn)%trn_flo = canal_om_stor(ican)%flo / canal(ican)%ddown_days
+        wallod_out(iwallo)%trn(itrn)%trn_flo = canal_om_stor(ican)%flo / canal(ican)%ddown_days
       else
         !! decision table to condition outflow from canal
       end if
-      
+
       !! outflow is the fraction of the withdrawal from the canal
       canal_om_out(ican) = (wallod_out(iwallo)%trn(itrn)%trn_flo / canal_om_stor(ican)%flo) *    &
                                                                             canal_om_stor(ican)
-      
+
       !! subtract amount that is removed
       canal_om_stor(ican) = canal_om_stor(ican) - canal_om_out(ican)
       

@@ -29,7 +29,7 @@
       integer, intent (in) :: ifrt        !              |fertilizer type from fert data base
       integer, intent (in) :: fertop      !              | 
       real, intent (in) :: frt_kg         !kg/ha         |amount of fertilizer applied
-      real :: fr_ly = 0.               !              |fraction of fertilizer applied to layer
+      real :: fr_ly = 0.                  !              |fraction of fertilizer applied to layer
       
       !!added by zhang
       !!======================
@@ -73,6 +73,15 @@
                        manure_om(ifrt)%forgp
         end if
         
+      if (bsn_cc%cswat == 1) then
+      soil1(j)%man(l)%c = soil1(j)%man(l)%c + fr_ly * frt_kg *            &
+            manure_om(ifrt)%forgn * 10.
+      soil1(j)%man(l)%n = soil1(j)%man(l)%n + fr_ly * frt_kg *            &
+            manure_om(ifrt)%forgn
+      soil1(j)%man(l)%p = soil1(j)%man(l)%p + fr_ly * frt_kg *            &
+            manure_om(ifrt)%forgp
+      end if
+
         !!By Zhang for C/N cycling 
         !!===========================
       if (bsn_cc%cswat == 2 .or. bsn_cc%cswat == 3) then

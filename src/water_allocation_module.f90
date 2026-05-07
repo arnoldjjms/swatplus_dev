@@ -174,6 +174,12 @@
         real :: ss                        !m/m  !side slope of trapezoidal canal
         real :: evap_co                   !     !evap coef to compute evaporation loss
         real :: sat_con                   !mm/d !to compute percolation from canal to groundwater
+        real :: sat_con                         !to compute percolation from canal to groundwater
+        real :: loss_fr                         !water loss during treament
+        real :: bed_thick = 0.            !m    !bed sediment thickness for Darcy seepage (gwflow; 0 if not used)
+        integer :: div_id = 0                   !recall diversion ID (gwflow; 0 if wallo-routed)
+        integer :: day_beg = 0                  !Julian day canal begins operation (gwflow external; 0 otherwise)
+        integer :: day_end = 0                  !Julian day canal ends operation (gwflow external; 0 otherwise)
         integer :: num_aqu                      !number of aquifers
         real, dimension(:), allocatable :: aqu_loss_fr
       end type water_canal_data    

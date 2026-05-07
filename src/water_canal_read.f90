@@ -48,7 +48,7 @@
                                                                                 canal(ic)%evap_co, num_aqu
           if (eof < 0) exit
           backspace (107)
-          
+
           !! allocate and read aquifer loss data
           allocate (canal(ic)%aqu_loss_fr(num_aqu))
           
