@@ -143,6 +143,8 @@
         integer :: ctbl_res = 0
         integer :: ch_sednut = 0
         integer :: sat_buff = 0
+        integer :: wallo_pou = 0
+        integer :: wallo_pod = 0
         integer :: canal = 0
         integer :: pipe = 0
         integer :: wtp = 0

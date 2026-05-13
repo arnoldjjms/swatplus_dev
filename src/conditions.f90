@@ -629,14 +629,7 @@
           if (ob_num == 0) ob_num = ob_cur
           
           call cond_real (ic, irrig(ob_num)%demand, d_tbl%cond(ic)%lim_const, idtbl)
-                                        
-        !irrigation demand
-        case ("irr_demand_wro")
-          ob_num = d_tbl%cond(ic)%ob_num
-          if (ob_num == 0) ob_num = ob_cur
-          
-          call cond_real (ic, wallo(ob_num)%tot%demand, d_tbl%cond(ic)%lim_const, idtbl)
-            
+                      
         !aquifer depth below surface
         case ("aqu_dep")
           ob_num = d_tbl%cond(ic)%ob_num

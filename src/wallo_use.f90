@@ -1,4 +1,4 @@
-      subroutine wallo_use (iwallo, itrn, iuse)
+      subroutine wallo_use (ipou)
       
       use water_allocation_module
       use hydrograph_module
@@ -6,12 +6,12 @@
       
       implicit none 
 
-      integer, intent (in):: iwallo         !water allocation object number
-      integer, intent (in) :: itrn      !water transfer object number
-      integer, intent (in) :: iuse          !water use number
-      integer :: iom                        !number of organic-mineral concentrations of water use
+      integer, intent (in):: ipou       !water allocation object number
+      integer :: iuse      !water use number
+      integer :: iom                    !number of organic-mineral concentrations of water use
       
       !! treating water to wtp or use concentrations
+      iuse = pou(ipou)%typ_num
       iom = wuse(iuse)%iorg_min
       outflo_om = wuse_om_efflu(iom)
       
@@ -29,8 +29,6 @@
       if (cs_db%num_tot > 0) then
         call hydcsout_conc_mass (outflo_om%flo, wuse_cs_efflu(iuse), outflo_cs)
       end if
-      
-      outflo_om = hz
       
       return
     end subroutine wallo_use

@@ -1,4 +1,4 @@
-      subroutine wallo_canal (iwallo, itrn, ican)
+      subroutine wallo_canal (ican)
 
 !!    ~ ~ ~ PURPOSE ~ ~ ~
 !!    Routes water through a wallo canal: computes outflow, applies loss,
@@ -11,9 +11,7 @@
       
       implicit none 
 
-      integer, intent (in):: iwallo     !water allocation object number
       integer, intent (in) :: ican      !water transfer object number
-      integer, intent (in) :: itrn      !water treatment plant object number
       integer :: iaq                    !aquifer number
       real :: seep_tot = 0.0            !toal seepage loss from canal
       real :: fr_aqu = 0.0              !fraction of seepage loss to each aquifer
@@ -26,13 +24,13 @@
       !! compute outflow from canal using decision table or simple lag
       if (canal(ican)%dtbl == "null") then
         !! simple drawdown days
-        wallod_out(iwallo)%trn(itrn)%trn_flo = canal_om_stor(ican)%flo / canal(ican)%ddown_days
+        canal_om_out(ican)%flo = canal_om_stor(ican)%flo / canal(ican)%ddown_days
       else
         !! decision table to condition outflow from canal
       end if
 
       !! outflow is the fraction of the withdrawal from the canal
-      canal_om_out(ican) = (wallod_out(iwallo)%trn(itrn)%trn_flo / canal_om_stor(ican)%flo) *    &
+      canal_om_out(ican) = (canal_om_out(ican)%flo / canal_om_stor(ican)%flo) *    &
                                                                             canal_om_stor(ican)
 
       !! subtract amount that is removed

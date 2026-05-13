@@ -6,9 +6,6 @@
       real :: trn_m3 = 0.                   !m3     |demand
       real, dimension(6) :: trn_fr = 0.     !frac   |transfer fraction for each source object (up to 6)
       
-      integer :: wallo_pous = 0             !number of points of use (POUs) for the water allocation
-      integer :: wallo_pods = 0             !number of points of delivery (PODs) for the water allocation
-      
       !! point of delivery objects (POD) for each point of use (POU)
       type pou_points_of_delivery
         character (len=25) :: name = ""         !name of POD
@@ -35,24 +32,31 @@
         integer :: conv_num = 0                 !number of the conveyance object
         character (len=25) :: dtbl_max = ""     !decision table name to set maximum level of POR for return
         real :: const_max = 0.                  !fixed max daily level - if dtble is not used
-        real :: ann_max = 0.                    !annual maximim withdrawal (m3/s)
+        real :: ann_max = 0.                    !annual maximim inflow (m3/s)
         real :: frac = 0.                       !fraction of POU outflow to each POR (m3/s)
       end type pou_points_of_return
         
+      !! irrigation amount and irrigation operations number (irr.ops) if POU type is irr
+      type pou_irrigation
+        real :: amt = 0.                        !mm   !irrigation amount from the POU
+        integer :: irr_ops = 0                  !number of irrigation operations from irr.ops
+      end type pou_irrigation
+      
       !! point of use objects (POU)
       type point_of_use
         character (len=25) :: name = ""         !name of POU
         character (len=10) :: typ = ""          !type of POU
-        integer :: num = 0                      !POU number
+        integer :: typ_num = 0                  !POU number
         integer :: pods = 0                     !number of sources or points of diversion (PODs) for the POU
         integer :: pors = 0                     !number of points of return (PORs) for the POU
         character (len=25) :: dtbl_mx = ""      !decision table name to set max daily right or duty
         integer :: dtbl_mx_num = 0              !decision table number to set max daily right or duty
         real :: rate_max = 0.                   !fixed max daily right or duty (m3/s) - if dtble is not used
-        character (len=25) :: dtbl_pod_fr = ""  !decision table name to set fractions from each POD - if null used fixed
-        integer :: dtbl_pod_fr_num = 0          !decision table name to set fractions from each POD - if null used fixed
-        character (len=25) :: dtbl_por_fr = ""  !decision table name to set fractions from each POR - if null used fixed
-        integer :: dtbl_por_fr_num = 0          !decision table name to set fractions from each POR - if null used fixed 
+        character (len=25) :: dtbl_pod_fr = ""  !decision table name to set fractions from each POD - if null use rate_max
+        integer :: dtbl_pod_fr_num = 0          !decision table name to set fractions from each POD - if null use rate_max
+        character (len=25) :: dtbl_por_fr = ""  !decision table name to set fractions from each POR - if null use rate_max
+        integer :: dtbl_por_fr_num = 0          !decision table name to set fractions from each POR - if null use rate_max
+        type (pou_irrigation) :: irrig          !irrigation amount and operations if POU type is irrigation
         character (len=1) :: fin = ""           !water taken from all POD in the POU (y/n)
         type (pou_points_of_delivery), dimension(:), allocatable :: pod     !POD data for the POU
         type (pou_points_of_return), dimension(:), allocatable :: por       !POR data for the POU
@@ -79,15 +83,15 @@
       type (point_of_delivery), dimension(:), allocatable :: pod     !POD data for the water allocation
       
       !! duty and delivery the POU and for each POD for outputting
-      type pod_duty_delivered
-        real :: duty = 0.                       !ha-m       |duty or demand from the POD
-        real :: deliv  = 0.                     !ha-m       |delivered from the POD
-      end type pod_duty_delivered
-      type (pod_duty_delivered) :: duty_delivz
+      type duty_delivered
+        real :: duty = 0.                       !ha-m       |duty or demand from the POD and total duty for the POU
+        real :: deliv  = 0.                     !ha-m       |delivered from the POD and total delivered for the POU
+      end type duty_delivered
+      type (duty_delivered) :: duty_delivz
       
       type pou_duty_delivered
-        type (pod_duty_delivered) :: duty_tot = 0.                      !ha-m       !total pou duty or demand
-        type (pod_duty_delivered), dimension(:), allocatable :: pod     !ha-m       |duty or demand from each POD
+        type (duty_delivered) :: duty_tot                           !ha-m       !total pou duty or demand
+        type (duty_delivered), dimension(:), allocatable :: pod     !ha-m       |duty or demand from each POD
       end type pou_duty_delivered
       type (pou_duty_delivered), dimension(:), allocatable :: poud_met     !daily duty and delivery
       type (pou_duty_delivered), dimension(:), allocatable :: poum_met     !monthly duty and delivery
@@ -174,7 +178,6 @@
         real :: ss                        !m/m  !side slope of trapezoidal canal
         real :: evap_co                   !     !evap coef to compute evaporation loss
         real :: sat_con                   !mm/d !to compute percolation from canal to groundwater
-        real :: sat_con                         !to compute percolation from canal to groundwater
         real :: loss_fr                         !water loss during treament
         real :: bed_thick = 0.            !m    !bed sediment thickness for Darcy seepage (gwflow; 0 if not used)
         integer :: div_id = 0                   !recall diversion ID (gwflow; 0 if wallo-routed)

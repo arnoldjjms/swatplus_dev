@@ -14,9 +14,6 @@
 
       implicit none
       
-
-      
-
       external :: theta
       integer :: ipest = 0      !none                   |pesticide counter - sequential
       integer :: jpst = 0       !none                   |pesticide counter from data base
@@ -93,7 +90,7 @@
           !! calculate amount of pesticide that undergoes chemical or biological degradation on day in reach
           pest_init = chpstmass
           if (pest_init > 1.e-12) then
-            pest_end = chpstmass * (pestcp(jpst)%decay_a ** tday)
+            pest_end = chpstmass * (pestcp(jpst)%decay_a * tday)
             chpstmass = pest_end
             chpst%pest(ipest)%react = pest_init - pest_end
             !! add decay to daughter pesticides

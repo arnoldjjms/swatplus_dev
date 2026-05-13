@@ -187,19 +187,6 @@
               ht2%flo = ht2%flo + ht1%flo + (wbody%flo - b_lo)
               ht2%flo = max(0.,ht2%flo)
               
-            case ("irrig_trn")
-              !! release based on irrigation demand of hru or water rights object
-              iob = Int(d_tbl%act(iac)%const2)
-              select case (d_tbl%act(iac)%file_pointer)
-              case ("wro")    !demand from water rights object
-                demand = wallo(iob)%tot%demand
-              case ("hru")    !demand from single hru
-                demand = irrig(iob)%demand
-              end select
-              !! const allows a fraction (usually > 1.0) of the demand (m3) released
-              ht2%flo = ht2%flo + demand * d_tbl%act(iac)%const / nstep
-              ht2%flo = max(0.,ht2%flo)
-                 
             case ("weir")
               !! release based on weir equation
               iweir = d_tbl%act_typ(iac)

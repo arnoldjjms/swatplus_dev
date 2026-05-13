@@ -770,29 +770,24 @@
             case ("flo_cms")    !! set water diverted - can't be more than actual flow/volume
               trn_m3 = Min (ht2%flo, d_tbl%act(iac)%const * 86400.)
 
-            case ("min_cms")    !! divert at least the minimum flow rate
-              trn_m3 = Max (ht2%flo, d_tbl%act(iac)%const * 86400.)
-              
-            case ("max_cms")    !! divert the maximum flow rate - can't be more than actual flow
-              trn_m3 = Min (ht2%flo, d_tbl%act(iac)%const * 86400.)
-              
-            case ("all_flo")    !! all flow diverted
-              trn_m3 = ht2%flo
-
-            case ("zero_flo")   !! no flow diverted
-              trn_m3 = 0.
-
             case ("frac")   !! constant fraction 
               trn_m3 = d_tbl%act(iac)%const * ht2%flo
                 
             end select
-             
+            
+            !! add to total duty if multiple duties
+            pou(j)%rate_max = pou(j)%rate_max + trn_m3
+            
           !! set the transfer amount - or duty - or water demand
           case ("duty") 
             j = d_tbl%act(iac)%ob_num
             if (j == 0) j = ob_cur
             
             trn_m3 = d_tbl%act(iac)%const
+            
+            !! add to total duty if multiple duties
+            pou(j)%rate_max = pou(j)%rate_max + trn_m3
+            
                 
           !! set the transfer fraction from each object
           case ("duty_fr") 
@@ -832,7 +827,6 @@
                 
             case ("flo_cms")    !! set water to be transferred
               trn_m3 = d_tbl%act(iac)%const * 86400.   !! m3/s to m3
-              
             end select
                  
           ! set the amount of water to be diverted from tile

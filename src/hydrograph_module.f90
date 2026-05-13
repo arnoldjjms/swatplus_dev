@@ -191,7 +191,10 @@
       type (pod_daily_hydrographs), dimension (:), allocatable :: podd_om  !! daily hydrographs
       type (pod_daily_hydrographs), dimension (:), allocatable :: podm_om  !! monthly hydrographs
       type (pod_daily_hydrographs), dimension (:), allocatable :: pody_om  !! yearly hydrographs
-      type (pou_daily_hydrographs), dimension (:), allocatable :: poda_om  !! ave annual hydrographs
+      type (pod_daily_hydrographs), dimension (:), allocatable :: poda_om  !! ave annual hydrographs
+      
+      !! outflo_om used as temp storage when using or treating water
+      type (hyd_output) :: outflo_om
       
       !! water treatment plant storage and outflow
       type (hyd_output), dimension (:), allocatable :: wtp_om_stor

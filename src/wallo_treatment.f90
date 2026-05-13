@@ -1,4 +1,4 @@
-      subroutine wallo_treatment (iwallo, itrn, itrt)
+      subroutine wallo_treatment (ipou)
       
       use water_allocation_module
       use hydrograph_module
@@ -6,12 +6,14 @@
       
       implicit none 
 
-      integer, intent (in):: iwallo     !water allocation object number
-      integer, intent (in) :: itrn      !water transfer object number
-      integer, intent (in) :: itrt      !water treatment plant object number
+      integer, intent (in):: ipou       !water allocation object number
+      integer :: itrt      !water treatment number
+      integer :: iom                    !number of organic-mineral concentrations of water use
       
       !! treating water to wtp concentrations
-      outflo_om = wtp_om_treat(itrt)
+      itrt = pou(ipou)%typ_num
+      iom = wtp(itrt)%iorg_min
+      outflo_om = wtp_om_treat(iom)
       
       !! treated outflow is a fraction of withdrawal
       outflo_om%flo = outflo_om%flo * poud_om(ipou)%pors%flo
@@ -31,8 +33,6 @@
       if (cs_db%num_tot > 0) then
         call hydcsout_conc_mass (outflo_om%flo, wtp_cs_treat(itrt), outflo_cs)
       end if
-      
-      outflo_om = hz
       
       return
     end subroutine wallo_treatment

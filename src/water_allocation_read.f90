@@ -1,16 +1,14 @@
       subroutine water_allocation_read
       
-      use input_file_module
       use water_allocation_module
-      use mgt_operations_module
       use maximum_data_module
       use hydrograph_module
-      use sd_channel_module
+      use input_file_module
       use conditional_module
-      use constituent_mass_module
-      use recall_module
-      use exco_module
-      use hru_module, only : hru
+      use reservoir_module
+      use sd_channel_module
+      use hru_module
+      use aquifer_module
       
       implicit none 
       
@@ -19,31 +17,23 @@
       integer :: eof = 0              !           |end of file
       integer :: imax = 0             !none       |determine max number for array (imax) and total number in file
       logical :: i_exist              !none       |check to determine if file exists
-      integer :: i = 0                !none       |counter
-      integer :: k = 0                !none       |counter
-      integer :: isrc = 0             !none       |counter
-      integer :: iwro = 0             !none       |number of water allocation objects
-      integer :: num_objs = 0
-      integer :: num_src = 0
-      integer :: itrn = 0
-      integer :: idb = 0
-      integer :: idb_irr = 0
-      integer :: ihru = 0
-      integer :: iexco = 0
-      integer :: iexco_om = 0
-      integer :: irec = 0
-      integer :: iom = 0
+      
+      integer :: ipou = 0             !none       |POU number
+      integer :: ipod = 0             !none       |POD number
+      integer :: ipor = 0             !none       |POR number
+      integer :: ipous = 0            !none       |number of POUs
+      integer :: ipods = 0            !none       |number of PODs for each POU
+      integer :: ipors = 0            !none       |number of PORs for each POU
+      integer :: idb = 0              !none       |decision table data file number
       
       eof = 0
       imax = 0
       
       !! read water allocation POU inputs
-      inquire (file=in_watrts%transfer_wro, exist=i_exist)
-      if (.not. i_exist .or. in_watrts%transfer_wro == "null") then
-        allocate (wallo(0:0))
-      else
+      inquire (file=in_wallo%pou, exist=i_exist)
+      if (.not. i_exist .or. in_wallo%pou /= "null") then
       do 
-        open (107,file=in_watrts%transfer_wro)
+        open (107,file=in_wallo%pou)
         read (107,*,iostat=eof) titldum
         if (eof < 0) exit
         read (107,*,iostat=eof) imax
@@ -51,10 +41,10 @@
         if (eof < 0) exit
         
         allocate (pou(imax))           !! point of use (pou)
-        allocate (poud_duty(imax))     !! daily duty and delivery
-        allocate (poum_duty(imax))     !! monthly and delivery
-        allocate (pouy_duty(imax))     !! yearly and delivery
-        allocate (poua_duty(imax))     !! average annual and delivery
+        allocate (poud_met(imax))      !! daily duty and delivery
+        allocate (poum_met(imax))      !! monthly duty and delivery
+        allocate (pouy_met(imax))      !! yearly duty and delivery
+        allocate (poua_met(imax))      !! average annual duty and delivery
         allocate (poud_om(imax))       !! daily hydrographs
         allocate (poum_om(imax))       !! monthly hydrographs
         allocate (pouy_om(imax))       !! yearly hydrographs
@@ -69,10 +59,10 @@
           pou(ipou)%pors = ipors
           
           allocate (pou(ipou)%pod(ipods))
-          allocate (poud_duty(ipou)%pod(ipods))
-          allocate (poum_duty(ipou)%pod(ipods))
-          allocate (pouy_duty(ipou)%pod(ipods))
-          allocate (poua_duty(ipou)%pod(ipods))
+          allocate (poud_met(ipou)%pod(ipods))
+          allocate (poum_met(ipou)%pod(ipods))
+          allocate (pouy_met(ipou)%pod(ipods))
+          allocate (poua_met(ipou)%pod(ipods))
           allocate (poud_om(ipou)%pod(ipods))       !! daily hydrographs
           allocate (poum_om(ipou)%pod(ipods))       !! monthly hydrographs
           allocate (pouy_om(ipou)%pod(ipods))       !! yearly hydrographs
@@ -86,7 +76,7 @@
           !! read all POD input data
           do ipod = 1, pou(ipou)%pods
             read (107,*,iostat=eof) pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%name, pou(ipou)%pod(ipod)%typ, &
-                pou(ipou)%pod(ipod)%typ_num, pou(ipou)%pod(ipod)%conv_typ, pou(ipou)%pod(ipod)%conv_num,        &
+                pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%conv_typ, pou(ipou)%pod(ipod)%conv_num,            &
                 pou(ipou)%pod(ipod)%dtbl_min, pou(ipou)%pod(ipod)%const_min, pou(ipou)%pod(ipod)%ann_max,       &
                 pou(ipou)%pod(ipod)%frac, pou(ipou)%pod(ipod)%comp
             if (eof < 0) exit
@@ -95,48 +85,49 @@
           !! read all POR input data
           do ipor = 1, pou(ipou)%pors
             read (107,*,iostat=eof) pou(ipou)%por(ipor)%num, pou(ipou)%por(ipor)%name, pou(ipou)%por(ipor)%typ, &
-                pou(ipou)%por(ipor)%typ_num, pou(ipou)%por(ipor)%conv_typ, pou(ipou)%por(ipor)%conv_num,        &
+                pou(ipou)%por(ipor)%num, pou(ipou)%por(ipor)%conv_typ, pou(ipou)%por(ipor)%conv_num,            &
                 pou(ipou)%por(ipor)%dtbl_max, pou(ipou)%por(ipor)%const_max, pou(ipou)%por(ipor)%ann_max,       &
                 pou(ipou)%por(ipor)%frac
           end do
           
           !! decision table for setting POU duty - max demand
-            if (pou(ipou)%dtbl_mx /= "null") then
-              if (pou(ipou)%typ == "irr") then
-                ihru = wallo(iwro)%trn(i)%rcv%num
+          if (pou(ipou)%dtbl_mx /= "null") then
+            if (pou(ipou)%typ == "irr") then
+                !ihru = wallo(iwro)%trn(i)%rcv%num
                 pou(ipou)%dtbl_mx_num = idb
-              else
+            else
               !! xwalk with con decision table
-              do idb = 1, db_mx%dtbl_con
-                if (pou(ipou)%dtbl_mx_num == dtbl_con(idb)%name) then
+              do idb = 1, db_mx%dtbl_flo
+                if (pou(ipou)%dtbl_mx == dtbl_flo(idb)%name) then
                   pou(ipou)%dtbl_mx_num = idb
                   exit
                 end if
               end do
             end if
+          end if
             
           !! decision table for setting POD fractions
-            if (pou(ipou)%dtbl_pod_fr /= "null") then
-              !! xwalk with con decision table
-              do idb = 1, db_mx%dtbl_con
-                if (pou(ipou)%dtbl_pod_fr == dtbl_con(idb)%name) then
-                  pou(ipou)%dtbl_pod_fr_num = idb
-                  exit
-                end if
-              end do
-            end if
+          if (pou(ipou)%dtbl_pod_fr /= "null") then
+            !! xwalk with con decision table
+            do idb = 1, db_mx%dtbl_flo
+              if (pou(ipou)%dtbl_pod_fr == dtbl_flo(idb)%name) then
+                pou(ipou)%dtbl_pod_fr_num = idb
+                exit
+              end if
+            end do
+          end if
             
           !! decision table for setting POR fractions
-            if (pou(ipou)%dtbl_por_fr /= "null") then
-              !! xwalk with con decision table
-              do idb = 1, db_mx%dtbl_con
-                if (pou(ipou)%dtbl_por_fr == dtbl_con(idb)%name) then
-                  ihru = wallo(iwro)%trn(i)%rcv%num
-                  pou(ipou)%dtbl_por_fr_num = idb
-                  exit
-                end if
-              end do
-            end if
+          if (pou(ipou)%dtbl_por_fr /= "null") then
+            !! xwalk with con decision table
+            do idb = 1, db_mx%dtbl_flo
+              if (pou(ipou)%dtbl_por_fr == dtbl_flo(idb)%name) then
+                !ihru = wallo(iwro)%trn(i)%rcv%num
+                pou(ipou)%dtbl_por_fr_num = idb
+                exit
+              end if
+            end do
+          end if
             
         end do    !ipou = 1, imax
         
@@ -150,12 +141,10 @@
       imax = 0
       
       !! read water allocation POD inputs
-      inquire (file=in_watrts%transfer_wro, exist=i_exist)
-      if (.not. i_exist .or. in_watrts%transfer_wro == "null") then
-        allocate (wallo(0:0))
-      else
+      inquire (file=in_wallo%pod, exist=i_exist)
+      if (.not. i_exist .or. in_wallo%pod /= "null") then
       do 
-        open (107,file=in_watrts%transfer_wro)
+        open (107,file=in_wallo%pod)
         read (107,*,iostat=eof) titldum
         if (eof < 0) exit
         read (107,*,iostat=eof) imax
@@ -215,7 +204,6 @@
       end do
       end if
       close(107)
-      
 
-      return
+    return
     end subroutine water_allocation_read

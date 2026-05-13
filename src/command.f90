@@ -410,18 +410,6 @@
             
           end select
           
-        !! allocate water for transfers that don't include a channel as a source
-        !! check here in case channel is not the last object
-        if (db_mx%wallo_db > 0) then
-          do iwallo = 1, db_mx%wallo_db  
-            do while (wallo(iwallo)%trn_cur > 0)
-              if (wallo(iwallo)%trn(wallo(iwallo)%trn_cur)%ch_src > 0) exit
-              iw = iwallo
-              if (wallo(iwallo)%trn_cur <= wallo(iwallo)%trn_obs) call wallo_control (iw)
-            end do
-          end do
-        end if
-          
         !! compute flow duration curves for channels
         if (pco%fdcout == "y" .and. ob(icmd)%typ == "chandeg") then
           call flow_dur_curve
@@ -455,8 +443,8 @@
       
         !! print water allocation output
         do iwro =1, db_mx%wallo_db
-          call wallo_allo_output (iwro)
-          call wallo_trn_output (iwro)
+          !call wallo_allo_output (iwro)
+          !call wallo_trn_output (iwro)
           call wallo_treat_output (iwro)
           call wallo_use_output (iwro)
           !call wallo_osrc_output (iwro)
