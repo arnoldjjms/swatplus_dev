@@ -92,6 +92,9 @@
       ! irrigation water constituent mass - dimensioned by hru
       type (constituent_mass), dimension (:), allocatable :: cs_irr
       
+      !! tillage mixing fractions for constituents
+      type (constituent_mass) :: csmix
+        
       ! soil constituent mass - dimensioned by hru
       type soil_constituent_mass
         type (constituent_mass), dimension (:), allocatable :: ly

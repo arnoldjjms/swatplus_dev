@@ -1190,9 +1190,9 @@
       type (hru_swift_header) :: hru_swift_hdr
 
       type shade_factor_data
-        integer :: jday = 0            ! none          |day of the year
-        integer :: lsu  = 0               ! none          |landscape unit
-        real :: value = 0.                  ! none          |shade factor value
+        integer :: jday = 0               ! none          |day of the year
+        integer :: cha  = 0               ! none          |channel number
+        real :: value = 0.                ! none          |shade factor value
       end type shade_factor_data
       type (shade_factor_data), dimension (:), allocatable :: shf_db
 

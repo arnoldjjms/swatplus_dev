@@ -522,8 +522,6 @@
         !! compute pesticide movement in soil
         call pest_lch
       
-        !! sum total pesticide in soil
-        call pest_soil_tot
         
         if (surfq(j) > 0. .and. qp_cms > 1.e-6) then
           if (precip_eff > 0.) then
@@ -623,6 +621,9 @@
        if (hru(j)%lumv%bmp_flag == 1) then
           call smp_bmpfixed
         end if
+
+        !! sum total pesticide in soil (moved here from before pest_pesty)
+        call pest_soil_tot
 
         !! ht2%flo is outflow from wetland or total saturation excess if no wetland
         if(ht2%flo > 0.) then

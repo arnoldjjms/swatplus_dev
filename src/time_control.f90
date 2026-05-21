@@ -374,11 +374,14 @@
         ch_morph_ord(iord)%num = ch_morph_ord(iord)%num + 1
         
         !! compute w_yr, d_yr and fp dep in mm
-        ch_morph(ich)%w_yr = ch_morph(ich)%ebank_m / sd_ch(ich)%chw / time%yrs_prt
-        ch_morph(ich)%d_yr = ch_morph(ich)%ebtm_m / sd_ch(ich)%chd / time%yrs_prt
-        !! mm = t / (3.*bd*w*l) -> assume fp width = 3*chw; len(m)=1000.*km; bd=1.0 t/m3; mm=1000.*m
-        ch_morph(ich)%fp_mm = ch_morph(ich)%fp_t / (3. * sd_ch(ich)%chw *           &
-                                                sd_ch(ich)%chl) / time%yrs_prt
+        ch_morph(ich)%ebank_m = ch_morph(ich)%ebank_m / time%yrs_prt
+        ch_morph(ich)%w_yr = ch_morph(ich)%ebank_m / sd_ch(ich)%chw
+        ch_morph(ich)%ebtm_m = ch_morph(ich)%ebtm_m / time%yrs_prt
+        ch_morph(ich)%d_yr = ch_morph(ich)%ebtm_m / sd_ch(ich)%chd
+        !! mm = t / (5.*bd*w*l) -> assume fp width = 5*chw; len(m)=1000.*km; bd=1.0 t/m3; mm=1000.*m
+        ch_morph(ich)%fp_km2 = 5. * sd_ch(ich)%chw * sd_ch(ich)%chl / 1000.
+        ch_morph(ich)%fp_t = ch_morph(ich)%fp_t / time%yrs_prt
+        ch_morph(ich)%fp_mm = ch_morph(ich)%fp_t / (5. * sd_ch(ich)%chw * sd_ch(ich)%chl)
         
         !! basin flood plain deposition and bank erosion
         bsn_sedbud%fp_dep_t = bsn_sedbud%fp_dep_t + ch_morph(ich)%fp_t
@@ -390,13 +393,16 @@
         ch_morph_ord(iord)%w_yr = ch_morph_ord(iord)%w_yr + ch_morph(ich)%w_yr
         ch_morph_ord(iord)%d_yr = ch_morph_ord(iord)%d_yr + ch_morph(ich)%d_yr
         ch_morph_ord(iord)%fp_mm = ch_morph_ord(iord)%fp_mm + ch_morph(ich)%fp_mm
+        ch_morph_ord(iord)%fp_km2 = ch_morph_ord(iord)%fp_km2 + ch_morph(ich)%fp_km2
         bsn_sedbud%ch_w_yr = bsn_sedbud%ch_w_yr + ch_morph(ich)%w_yr
         
         iob = sp_ob1%chandeg + ich - 1
         !! ch_budget.txt
-        write (8000,*) ich, ob(iob)%name, ob(iob)%area_ha, sd_ch(ich)%chw,  &
-                ch_morph(ich)%w_yr, sd_ch(ich)%chd, ch_morph(ich)%d_yr,      &
-                                                      ch_morph(ich)%fp_mm
+        write (8000,*) ich, ob(iob)%name, ob(iob)%area_ha, sd_ch(ich)%chl,  &
+                sd_ch(ich)%chw, sd_ch(ich)%chd, ch_morph(ich)
+        !write (8000,*) ich, ob(iob)%name, ob(iob)%area_ha, sd_ch(ich)%chw,  &
+        !        ch_morph(ich)%w_yr, sd_ch(ich)%chd, ch_morph(ich)%d_yr,      &
+        !                                              ch_morph(ich)%fp_mm
       end do
       
       !! average and write by stream order
@@ -406,6 +412,7 @@
             ch_morph_ord(iord)%w_yr = ch_morph_ord(iord)%w_yr / ch_morph_ord(iord)%num
             ch_morph_ord(iord)%d_yr = ch_morph_ord(iord)%d_yr / ch_morph_ord(iord)%num
             ch_morph_ord(iord)%fp_mm = ch_morph_ord(iord)%fp_mm / ch_morph_ord(iord)%num
+            ch_morph_ord(iord)%fp_km2 = ch_morph_ord(iord)%fp_km2 / ch_morph_ord(iord)%num
           end if
         end do
       end if
@@ -413,8 +420,9 @@
       !! write ch_order_sed.txt
       if (sp_ob%chandeg > 0) then
         do iord = 1, 12
-          write (8001,*) iord, ch_morph_ord(iord)%num, ch_morph_ord(iord)%ebank_t,     &
-            ch_morph_ord(iord)%w_yr, ch_morph_ord(iord)%fp_t, ch_morph_ord(iord)%fp_mm
+          write (8001,*) iord, ch_morph_ord(iord)
+          !write (8001,*) iord, ch_morph_ord(iord)%num, ch_morph_ord(iord)%ebank_t,     &
+          !  ch_morph_ord(iord)%w_yr, ch_morph_ord(iord)%fp_t, ch_morph_ord(iord)%fp_mm
         end do
       end if
       

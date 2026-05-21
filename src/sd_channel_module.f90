@@ -98,6 +98,7 @@
 
       type channel_morphology_output
         integer :: num              !           |number of channels in each order
+        real :: fp_km2 = 0.         !km2        |flood plain area of channel
         real :: w_yr = 0.           !ratio      |bank cutting - widths per year 
         real :: d_yr = 0.           !ratio      |bed down cutting - depths per year
         real :: fp_mm = 0.          !mm/yr      |flood plain deposition - uniform across the flood plain
@@ -214,6 +215,7 @@
         real :: out1_vol = 0.   !m3         |outflow during previous time step for Muskingum
         real :: stor_dis_01bf = 0.      !hr         |storage time constant at 0.1*bankfull
         real :: stor_dis_bf = 0.        !hr         |storage time constant at bankfull
+        real :: fp_km2 = 0.             !km2        |flood plain area of channel
         type (muskingum_parameters) :: msk
         type (floodplain_parameters) :: fp
         real, dimension (:), allocatable :: kd      !           |aquatic mixing velocity (diffusion/dispersion)-using mol_wt
