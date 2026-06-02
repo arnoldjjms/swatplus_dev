@@ -89,18 +89,6 @@
       
       call dtbl_flocon_read
             
-      ! read water treatment and water allocation files - before hru lum tables
-      call om_treat_read
-      call om_use_read
-      call om_osrc_read
-      call water_treatment_read
-      call water_use_read
-      !call water_osrc_read
-      call water_tower_read
-      call water_pipe_read
-      call water_canal_read
-      call water_allocation_read
-      
       call hru_dtbl_actions_init
       
       ! read reservoir and wetland data
@@ -110,6 +98,19 @@
       call wet_read_salt_cs
       if (db_mx%wet_dat > 0) call wet_all_initial
       call wet_fp_init
+      
+      ! read water treatment and water allocation files - before hru lum tables
+      call om_treat_read
+      call om_use_read
+      call om_osrc_read
+      call water_treatment_read
+      call water_use_read
+      call water_osrc_read
+      call water_tower_read
+      call water_pipe_read
+      call water_canal_read
+      call water_hru_irr_read
+      call water_allocation_read
       
       !! initialize carbon and nutrient contents for each hru
       do ihru = 1, sp_ob%hru

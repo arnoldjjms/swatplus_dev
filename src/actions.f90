@@ -172,8 +172,8 @@
             !select object type
             iob = d_tbl%act(iac)%ob_num
 
-            irrig(j)%demand         = d_tbl%act(iac)%const * hru(j)%area_ha * 10.       ! m3 = mm * ha * 10.
-            res_ob(iob)%irrig_track = res_ob(iob)%irrig_track + 1                       ! Tracker to update irrigation demand
+            irrig(j)%demand = d_tbl%act(iac)%const * hru(j)%area_ha * 10.       ! m3 = mm * ha * 10.
+            res_ob(iob)%irrig_track = res_ob(iob)%irrig_track + 1               ! Tracker to update irrigation demand
             res_ob(iob)%d_irrig_day = irrig(j)%demand
 
           !irrigate demand - water allocation action - only irrigates if adequate water is available

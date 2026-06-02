@@ -238,6 +238,9 @@
             end do
           end if
           
+          !! allocation at start of day - withdrawal from outside source, water tower and canals
+          if (db_mx%wallo_pou > 0) call wallo_start_day
+
           call command              !! command loop 
           
           ! reset base0 heat units and yr_skip at end of year for southern hemisphere

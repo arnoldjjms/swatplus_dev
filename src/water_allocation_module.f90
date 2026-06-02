@@ -38,9 +38,21 @@
         
       !! irrigation amount and irrigation operations number (irr.ops) if POU type is irr
       type pou_irrigation
-        real :: amt = 0.                        !mm   !irrigation amount from the POU
-        integer :: irr_ops = 0                  !number of irrigation operations from irr.ops
+        integer :: hru_num = 0                  !number of nrus in the farm/district that are irrigated
+        real :: dmd = 0.                        !irrigation demand - mm
+        integer, dimension(:), allocatable :: hru                          !hru number
+        character (len=25), dimension(:), allocatable :: dtbl_lum          !decision table name to set daily irrigation demand
+        integer, dimension(:), allocatable :: dtbl_num                     !decision table number to set daily irrigation demand
       end type pou_irrigation
+      
+      !! hru number and decision table for hrus that are irrigated
+      type hru_irrigation
+        character (len=25) :: name = ""         !name of irrigation useruser
+        integer :: hrus = 0                     !number of irrigation operations from irr.ops
+        integer, dimension(:), allocatable :: hru_num                      !hru number
+        character (len=25), dimension(:), allocatable :: dtbl_lum          !decision table name to set daily irrigation demand
+      end type hru_irrigation
+      type (hru_irrigation), dimension(:), allocatable :: hruirr_db        !POU data for the water allocation
       
       !! point of use objects (POU)
       type point_of_use
@@ -56,8 +68,8 @@
         integer :: dtbl_pod_fr_num = 0          !decision table name to set fractions from each POD - if null use rate_max
         character (len=25) :: dtbl_por_fr = ""  !decision table name to set fractions from each POR - if null use rate_max
         integer :: dtbl_por_fr_num = 0          !decision table name to set fractions from each POR - if null use rate_max
-        type (pou_irrigation) :: irrig          !irrigation amount and operations if POU type is irrigation
         character (len=1) :: fin = ""           !water taken from all POD in the POU (y/n)
+        type (pou_irrigation) :: irr             !irrigation hru and dtbl if POU type is irr
         type (pou_points_of_delivery), dimension(:), allocatable :: pod     !POD data for the POU
         type (pou_points_of_return), dimension(:), allocatable :: por       !POR data for the POU
       end type point_of_use
@@ -67,6 +79,7 @@
       type pod_points_of_use
         character (len=25) :: name = ""         !name of POU
         integer :: num = 0                      !POU number
+        integer :: pod_num = 0                      !POD number
         character (len=25) :: right = ""        !water right
       end type pod_points_of_use
         

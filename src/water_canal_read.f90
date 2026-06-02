@@ -25,9 +25,7 @@
       !! read water canal inputs
 
       inquire (file='water_canal.wal', exist=i_exist)
-      if (.not. i_exist .or. 'water_canal.wal' == "null") then
-        allocate (canal(0:0))
-      else
+      if (i_exist) then
       do 
         open (107,file='water_canal.wal')
         read (107,*,iostat=eof) titldum

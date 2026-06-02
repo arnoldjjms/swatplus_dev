@@ -18,15 +18,19 @@
       integer :: ipod = 0       !none       |point of delivery (POD) number
       integer :: ipor = 0       !none       |point of return (POR) number
       integer :: iosrc = 0      !none       |outside basin source number
+      integer :: ihru = 0       !none       |hru number
+      integer :: irr = 0        !none       |irrigation object number
       integer :: ican = 0       !none       |canal number
       integer :: istor = 0      !none       |water storage number
       integer :: iom = 0        !none       |pointer to organic-mineral file
       integer :: j = 0          !none       |object number for decision table conditioning - leave 0 for generic tables
       integer :: iob = 0        !none       |current object number for decision table conditioning
+      integer :: ird = 0        !none       !irrigation distric number number of hrus
+      integer :: irdb = 0       !none       |irrigation farm/district hru data
 
-          !! Outside Source Objects - POD Objects
-          
-          !! set out of basin availability if recall file is used - typically measured flow or SWAT+ output
+      !! allocate water (wallo_control) for all non-natural objects
+      
+        !! Outside Source Objects - POD Objects - typically measured flow or SWAT+ output
           do iosrc = 1, db_mx%out_src
             !! use recall object for transfer
             ipod = osrc(iosrc)%wallo_pod
@@ -40,23 +44,29 @@
                 osrc_om(iosrc) = recall(iom)%hd(1,time%yrs)
               case ("const") !constant
                 osrc_om(iosrc) = exco(iom)
-            end select
-            !! add option for dtbl and const  
+              end select
+            !! add option for dtbl - probably not needed  
             
             !! allocate and deliver water at start of day
-            call wallo_control(ipod)
+            if (ipod > 0) then
+              call wallo_control(ipod)
+            end if
           end do
         
-          !! allocate and deliver water at start of day for canals
+        !! allocate and deliver water at start of day for canals
           do ican = 1, db_mx%canal 
             ipod = canal(ican)%wallo_pod
-            call wallo_control(ipod)
+            if (ipod > 0) then
+              call wallo_control(ipod)
+            end if
           end do
           
-          !! allocate and deliver water at start of day for water tower storage
+        !! allocate and deliver water at start of day for water tower storage
           do istor = 1, db_mx%stor 
             ipod = wtow(istor)%wallo_pod
-            call wallo_control(ipod)
+            if (ipod > 0) then
+              call wallo_control(ipod)
+            end if
           end do
           
           !! zero water allocation objects and set reset POU finishes to no
@@ -65,26 +75,44 @@
           do ipou = 1, db_mx%wallo_pou
             !! zero water allocation objects and set reset POU finishes to no
           
-            !! compute duty if decision table is used for total demand
-            if (pou(ipou)%dtbl_mx_num > 0) then
-              id = pou(ipou)%dtbl_mx_num
-              pou(ipou)%rate_max = 0.
-              j = ipou
-              iob = ipou
-              if (id > 0) then
-                if (pou(ipou)%typ == "irr")then
-                  id = pou(ipou)%typ_num
-                  d_tbl => dtbl_lum(id)
-                else
-                  id = pou(ipou)%dtbl_mx_num
-                  d_tbl => dtbl_flo(id)
-                end if
+            !! compute duty if decision table is used for total irrigation demand
+            !pou(ipou)%rate_max = 0.
+            if (pou(ipou)%typ == "irr")then
+              if (pou(ipou)%dtbl_mx_num > 0) then
+                id = pou(ipou)%dtbl_mx_num
+                d_tbl => dtbl_flo(id)
                 call conditions (j, id)
                 call actions (j, iob, id)
                 !! reset demand or duty for transfer object
                 pou(ipou)%rate_max = trn_m3 * 86400. !convert from m3/s to m3/day
+              else
+                if (pou(ipou)%rate_max < 1.e-6) then
+                do ihru = 1, pou(ipou)%irr%hru_num
+                  id = pou(ipou)%irr%dtbl_num(ihru)
+                  pou(ipou)%irr%dmd = 0.
+                  d_tbl => dtbl_lum(id)
+                  call conditions (j, id)
+                  call actions (j, iob, id)
+                  !! save irrigation demand (from decision table) for each hru
+                  !! for "irr", typ_num is the pointer to hruirr_db
+                  irdb = pou(ipou)%typ_num
+                  j = hruirr_db(irdb)%hru_num(ihru)
+                  pou(ipou)%irr%dmd = irrig(j)%demand
+                  !! reset demand or duty for transfer object
+                  pou(ipou)%rate_max = pou(ipou)%rate_max + trn_m3 * 86400. !convert from m3/s to m3/day
+                end do
+                end if
               end if
-            end if
+              else
+                  if (pou(ipou)%dtbl_mx_num > 0) then
+                    id = pou(ipou)%dtbl_mx_num
+                    d_tbl => dtbl_flo(id)
+                    call conditions (j, id)
+                    call actions (j, iob, id)
+                    !! reset demand or duty for transfer object
+                    pou(ipou)%rate_max = trn_m3 * 86400. !convert from m3/s to m3/day
+                  end if
+              end if
           
             !! compute source fractions if decision table is used for POD fractions 
             if (pou(ipou)%dtbl_pod_fr_num > 0) then

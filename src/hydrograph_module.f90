@@ -170,6 +170,20 @@
       type (hyd_output) :: bch_out_a
       type (hyd_output) :: chomz
       
+      !water allocation
+      type irrigation_water_transfer
+        real :: demand = 0.                     !irrigation demand          |m3
+        real :: applied = 0.                    !irrigation applied         |mm
+        real :: runoff = 0.                     !irrigation surface runoff  |mm
+        real :: eff = 1.                        !irrigation efficiency as a fraction of irrigation. Jaehak 2022
+        real :: frac_surq = 0.                  !fraction of irrigation lost in runoff flow. Jaehak 2022
+        real :: no3 = 0.                        !nitrate concentration in irrigation water  |kg   Jaehak 2023
+        real :: salt = 0.                       !salt concentration in irrigation water  |ppm       
+        !hyd_output units are in mm and mg/L
+        type (hyd_output) :: water              !irrigation water
+      end type irrigation_water_transfer
+      type (irrigation_water_transfer),dimension(:),allocatable:: irrig         !dimension by hru
+      
       !! water allocation hydrographs
       !! POU inflow from PODs and outflow to PORs for transferring and outputting
       type pou_daily_hydrographs
@@ -195,6 +209,9 @@
       
       !! outflo_om used as temp storage when using or treating water
       type (hyd_output) :: outflo_om
+      
+      !! om_irrig transfer of organics and minerals in irrigation water
+      type (hyd_output) :: om_irrig
       
       !! water treatment plant storage and outflow
       type (hyd_output), dimension (:), allocatable :: wtp_om_stor
@@ -401,20 +418,6 @@
         integer, dimension(:), allocatable :: obj_subs                      !subbasins object number that contain this object
       end type object_connectivity
       type (object_connectivity), dimension(:), allocatable, save :: ob
-      
-      !water allocation
-      type irrigation_water_transfer
-        real :: demand = 0.                     !irrigation demand          |m3
-        real :: applied = 0.                    !irrigation applied         |mm
-        real :: runoff = 0.                     !irrigation surface runoff  |mm
-        real :: eff = 1.                        !irrigation efficiency as a fraction of irrigation. Jaehak 2022
-        real :: frac_surq = 0.                  !fraction of irrigation lost in runoff flow. Jaehak 2022
-        real :: no3 = 0.                        !nitrate concentration in irrigation water  |kg   Jaehak 2023
-        real :: salt = 0.                       !salt concentration in irrigation water  |ppm       
-        !hyd_output units are in mm and mg/L
-        type (hyd_output) :: water              !irrigation water
-      end type irrigation_water_transfer
-      type (irrigation_water_transfer),dimension(:),allocatable:: irrig         !dimension by hru
       
       !recall hydrograph inputs
       type recall_hydrograph_inputs

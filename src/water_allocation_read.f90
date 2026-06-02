@@ -25,6 +25,7 @@
       integer :: ipods = 0            !none       |number of PODs for each POU
       integer :: ipors = 0            !none       |number of PORs for each POU
       integer :: idb = 0              !none       |decision table data file number
+      integer :: irrhru = 0           !none       |number of irrigation hrus for each POU
       
       eof = 0
       imax = 0
@@ -51,14 +52,25 @@
         allocate (poua_om(imax))       !! ave annual hydrographs
         !! add constituent types for each pou if needed
 
+        read (107,*,iostat=eof) header
+        
+        !! read POU data
         do ipou = 1, imax
-          read (107,*,iostat=eof) header
           if (eof < 0) exit
-          read (107,*,iostat=eof) pou(ipou)%name, pou(ipou)%typ, ipods, ipors, pou(ipou)%dtbl_mx, pou(ipou)%rate_max
-          pou(ipou)%pods = ipods
-          pou(ipou)%pors = ipors
+          read (107,*,iostat=eof) pou(ipou)%name, pou(ipou)%typ, pou(ipou)%typ_num, pou(ipou)%pods,    &
+              pou(ipou)%pors, pou(ipou)%dtbl_mx, pou(ipou)%rate_max, pou(ipou)%dtbl_pod_fr,             &
+              pou(ipou)%dtbl_por_fr
           
+          ipods = pou(ipou)%pods
+          ipors = pou(ipou)%pors
           allocate (pou(ipou)%pod(ipods))
+          if (ipors > 0) then
+            allocate (pou(ipou)%por(ipors))
+            allocate (poud_om(ipou)%por(ipors))       !! daily hydrographs
+            allocate (poum_om(ipou)%por(ipors))       !! monthly hydrographs
+            allocate (pouy_om(ipou)%por(ipors))       !! yearly hydrographs
+            allocate (poua_om(ipou)%por(ipors))       !! ave annual hydrographs
+          end if
           allocate (poud_met(ipou)%pod(ipods))
           allocate (poum_met(ipou)%pod(ipods))
           allocate (pouy_met(ipou)%pod(ipods))
@@ -69,12 +81,8 @@
           allocate (poua_om(ipou)%pod(ipods))       !! ave annual hydrographs
           !! add constituent types for each pou if needed
           
-          if (eof < 0) exit
-          read (107,*,iostat=eof) header
-          if (eof < 0) exit
-          
           !! read all POD input data
-          do ipod = 1, pou(ipou)%pods
+          do ipod = 1, ipods
             read (107,*,iostat=eof) pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%name, pou(ipou)%pod(ipod)%typ, &
                 pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%conv_typ, pou(ipou)%pod(ipod)%conv_num,            &
                 pou(ipou)%pod(ipod)%dtbl_min, pou(ipou)%pod(ipod)%const_min, pou(ipou)%pod(ipod)%ann_max,       &
@@ -83,27 +91,52 @@
           end do
           
           !! read all POR input data
-          do ipor = 1, pou(ipou)%pors
+          do ipor = 1, ipors
             read (107,*,iostat=eof) pou(ipou)%por(ipor)%num, pou(ipou)%por(ipor)%name, pou(ipou)%por(ipor)%typ, &
                 pou(ipou)%por(ipor)%num, pou(ipou)%por(ipor)%conv_typ, pou(ipou)%por(ipor)%conv_num,            &
                 pou(ipou)%por(ipor)%dtbl_max, pou(ipou)%por(ipor)%const_max, pou(ipou)%por(ipor)%ann_max,       &
                 pou(ipou)%por(ipor)%frac
           end do
+                
+          !! check if POU is a channel or hru and if so, store the POU number for use when adding
+          !if (pou(ipou)%typ == "cha") then
+          !  pou(ipou)%por(ipor)%num_cha = ipou
+          !    do iob = 1, sd_ch_num
+          !      if (sd_ch(iob)%num == pou(ipou)%por(ipor)%num_cha) then
+          !        sd_ch(iob)%pou_num = ipou
+          !        sd_ch(iob)%por_num = ipor
+          !        exit
+          !      end if
+          !    end do
+          !  end if
           
           !! decision table for setting POU duty - max demand
           if (pou(ipou)%dtbl_mx /= "null") then
-            if (pou(ipou)%typ == "irr") then
-                !ihru = wallo(iwro)%trn(i)%rcv%num
+            !! xwalk with con decision table
+            do idb = 1, db_mx%dtbl_flo
+              if (pou(ipou)%dtbl_mx == dtbl_flo(idb)%name) then
                 pou(ipou)%dtbl_mx_num = idb
-            else
-              !! xwalk with con decision table
-              do idb = 1, db_mx%dtbl_flo
-                if (pou(ipou)%dtbl_mx == dtbl_flo(idb)%name) then
-                  pou(ipou)%dtbl_mx_num = idb
+                exit
+              end if
+            end do
+          end if
+          !! crosswalk with lum decision table for all hru in the irrigation district
+          if (pou(ipou)%typ == "irr") then
+            irrhru = hruirr_db(pou(ipou)%typ_num)%hrus
+            pou(ipou)%irr%hru_num = irrhru
+            allocate (pou(ipou)%irr%hru(irrhru))
+            allocate (pou(ipou)%irr%dtbl_lum(irrhru))
+            allocate (pou(ipou)%irr%dtbl_num(irrhru))
+            do ihru = 1, irrhru
+                pou(ipou)%irr%hru(ihru) = hruirr_db(pou(ipou)%typ_num)%hru_num(ihru)
+                pou(ipou)%irr%dtbl_lum(ihru) = hruirr_db(pou(ipou)%typ_num)%dtbl_lum(ihru)
+              do idb = 1, db_mx%dtbl_lum
+                if (pou(ipou)%irr%dtbl_lum(ihru) == dtbl_lum(idb)%name) then
+                  pou(ipou)%irr%dtbl_num(ihru) = idb
                   exit
                 end if
               end do
-            end if
+            end do
           end if
             
           !! decision table for setting POD fractions
@@ -150,14 +183,17 @@
         read (107,*,iostat=eof) imax
         db_mx%wallo_pod = imax
         if (eof < 0) exit
+        read (107,*,iostat=eof) header
+        if (eof < 0) exit
         
-        allocate (pod(imax))           !! point of use (pou)
+        allocate (pod(imax))           !! point of use (pod)
+        allocate (podd_om(imax))       !! daily hydrographs
+        allocate (podm_om(imax))       !! monthly hydrographs
+        allocate (pody_om(imax))       !! yearly hydrographs
+        allocate (poda_om(imax))       !! ave annual hydrographs
 
         do ipod = 1, imax
-          read (107,*,iostat=eof) header
-          if (eof < 0) exit
-          read (107,*,iostat=eof) pod(ipod)%name, pod(ipod)%num, pod(ipod)%typ, ipous
-          pod(ipod)%pous = ipous
+          read (107,*,iostat=eof) pod(ipod)%num, pod(ipod)%name, pod(ipod)%typ, pod(ipod)%typ_num, ipous
           
           allocate (pod(ipod)%pou(ipous))
           allocate (podd_om(ipod)%pou(ipous))       !! daily hydrographs
@@ -166,13 +202,10 @@
           allocate (poda_om(ipod)%pou(ipous))       !! ave annual hydrographs
           !! add constituent types for each pou if needed
           
-          if (eof < 0) exit
-          read (107,*,iostat=eof) header
-          if (eof < 0) exit
-          
           backspace (107)
-          read (107,*,iostat=eof) pod(ipod)%num, pod(ipod)%name, pod(ipod)%pous, pod(ipod)%typ, pod(ipod)%typ_num,   &
-                     (pod(ipod)%pou(ipou)%num, pod(ipod)%pou(ipou)%name, pod(ipod)%pou(ipou)%right, ipou = 1, ipous)
+          read (107,*,iostat=eof) pod(ipod)%num, pod(ipod)%name, pod(ipod)%typ, pod(ipod)%typ_num,           &
+            pod(ipod)%pous, (pod(ipod)%pou(ipou)%num, pod(ipod)%pou(ipou)%pod_num, pod(ipod)%pou(ipou)%name, &
+            pod(ipod)%pou(ipou)%right, ipou = 1, ipous)
           
           !! store the POD number for each POU object for use in water allocation calculations
           select case (pod(ipod)%typ)
