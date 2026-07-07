@@ -1335,7 +1335,7 @@
       end subroutine hyd_convert_mass_to_conc
          
       !! routines for hydrograph module
-      function hydout_add (hyd1, hyd2) result (hyd3)
+      elemental function hydout_add (hyd1, hyd2) result (hyd3)
         type (hyd_output), intent (in) :: hyd1
         type (hyd_output), intent (in) :: hyd2
         type (hyd_output) :: hyd3
@@ -1364,7 +1364,7 @@
       end function hydout_add
                      
       !! routines for hydrograph module
-      function hydout_subtract (hyd1, hyd2) result (hyd3)
+      elemental function hydout_subtract (hyd1, hyd2) result (hyd3)
         type (hyd_output), intent (in) :: hyd1
         type (hyd_output), intent (in) :: hyd2
         type (hyd_output) :: hyd3
@@ -1389,7 +1389,7 @@
       end function hydout_subtract
             
       !! routines for hydrograph module
-      function hydout_mult (hyd1, hyd2) result (hyd3)
+      elemental function hydout_mult (hyd1, hyd2) result (hyd3)
         type (hyd_output), intent (in) :: hyd1
         type (hyd_output), intent (in) :: hyd2
         type (hyd_output) :: hyd3
@@ -1414,7 +1414,7 @@
       end function hydout_mult
             
       !! routines for hydrograph module
-      function hydout_add_const (const, hyd1) result (hyd2)
+      elemental function hydout_add_const (const, hyd1) result (hyd2)
         real, intent (in) :: const
         type (hyd_output), intent (in) :: hyd1
         type (hyd_output) :: hyd2
@@ -1438,7 +1438,7 @@
         hyd2%temp = hyd1%temp
       end function hydout_add_const
       
-      function hydout_mult_const (const, hyd1) result (hyd2)
+      elemental function hydout_mult_const (const, hyd1) result (hyd2)
         type (hyd_output), intent (in) :: hyd1
         real, intent (in) :: const
         type (hyd_output) :: hyd2
@@ -1463,7 +1463,7 @@
         hyd2%temp = hyd1%temp
       end function hydout_mult_const
       
-      function hydout_div_const (hyd1,const) result (hyd2)
+      elemental function hydout_div_const (hyd1,const) result (hyd2)
         type (hyd_output), intent (in) :: hyd1
         real, intent (in) :: const
         type (hyd_output) :: hyd2
@@ -1491,23 +1491,13 @@
         type (pou_daily_hydrographs), intent (in) :: pou1
         type (pou_daily_hydrographs), intent (in) :: pou2
         type (pou_daily_hydrographs) :: pou3
-        integer :: i = 0
 
         pou3%pods = pou1%pods + pou2%pods
         pou3%pors = pou1%pors + pou2%pors
+        pou3%pod = pou1%pod + pou2%pod
 
-        if (allocated(pou1%pod) .and. allocated(pou2%pod)) then
-          allocate (pou3%pod(min(size(pou1%pod), size(pou2%pod))))
-          do i = 1, size(pou3%pod)
-            pou3%pod(i) = pou1%pod(i) + pou2%pod(i)
-          end do
-        end if
-
-        if (allocated(pou1%por) .and. allocated(pou2%por)) then
-          allocate (pou3%por(min(size(pou1%por), size(pou2%por))))
-          do i = 1, size(pou3%por)
-            pou3%por(i) = pou1%por(i) + pou2%por(i)
-          end do
+        if (allocated(pou1%por)) then
+          pou3%por = pou1%por + pou2%por
         end if
       end function pouhyd_add
 
@@ -1515,23 +1505,13 @@
         real, intent (in) :: const
         type (pou_daily_hydrographs), intent (in) :: pou1
         type (pou_daily_hydrographs) :: pou2
-        integer :: i = 0
 
         pou2%pods = const * pou1%pods
         pou2%pors = const * pou1%pors
-
-        if (allocated(pou1%pod)) then
-          allocate (pou2%pod(size(pou1%pod)))
-          do i = 1, size(pou2%pod)
-            pou2%pod(i) = const * pou1%pod(i)
-          end do
-        end if
+        pou2%pod = const * pou1%pod
 
         if (allocated(pou1%por)) then
-          allocate (pou2%por(size(pou1%por)))
-          do i = 1, size(pou2%por)
-            pou2%por(i) = const * pou1%por(i)
-          end do
+          pou2%por = const * pou1%por
         end if
       end function pouhyd_mult_const
 
@@ -1539,23 +1519,13 @@
         type (pou_daily_hydrographs), intent (in) :: pou1
         real, intent (in) :: const
         type (pou_daily_hydrographs) :: pou2
-        integer :: i = 0
 
         pou2%pods = pou1%pods / const
         pou2%pors = pou1%pors / const
-
-        if (allocated(pou1%pod)) then
-          allocate (pou2%pod(size(pou1%pod)))
-          do i = 1, size(pou2%pod)
-            pou2%pod(i) = pou1%pod(i) / const
-          end do
-        end if
+        pou2%pod = pou1%pod / const
 
         if (allocated(pou1%por)) then
-          allocate (pou2%por(size(pou1%por)))
-          do i = 1, size(pou2%por)
-            pou2%por(i) = pou1%por(i) / const
-          end do
+          pou2%por = pou1%por / const
         end if
       end function pouhyd_div_const
             
