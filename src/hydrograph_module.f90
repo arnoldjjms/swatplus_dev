@@ -1202,6 +1202,7 @@
 
       interface operator (+)
         module procedure hydout_add
+        module procedure pouhyd_add
       end interface
              
       interface operator (-)
@@ -1218,10 +1219,12 @@
 
       interface operator (*)
         module procedure hydout_mult_const
+        module procedure pouhyd_mult_const
       end interface 
 
       interface operator (/)
         module procedure hydout_div_const
+        module procedure pouhyd_div_const
       end interface   
              
       interface operator (//)
@@ -1483,6 +1486,78 @@
         hyd2%grv = hyd1%grv / const
         hyd2%temp = hyd1%temp
       end function hydout_div_const
+
+      function pouhyd_add (pou1, pou2) result (pou3)
+        type (pou_daily_hydrographs), intent (in) :: pou1
+        type (pou_daily_hydrographs), intent (in) :: pou2
+        type (pou_daily_hydrographs) :: pou3
+        integer :: i = 0
+
+        pou3%pods = pou1%pods + pou2%pods
+        pou3%pors = pou1%pors + pou2%pors
+
+        if (allocated(pou1%pod) .and. allocated(pou2%pod)) then
+          allocate (pou3%pod(min(size(pou1%pod), size(pou2%pod))))
+          do i = 1, size(pou3%pod)
+            pou3%pod(i) = pou1%pod(i) + pou2%pod(i)
+          end do
+        end if
+
+        if (allocated(pou1%por) .and. allocated(pou2%por)) then
+          allocate (pou3%por(min(size(pou1%por), size(pou2%por))))
+          do i = 1, size(pou3%por)
+            pou3%por(i) = pou1%por(i) + pou2%por(i)
+          end do
+        end if
+      end function pouhyd_add
+
+      function pouhyd_mult_const (const, pou1) result (pou2)
+        real, intent (in) :: const
+        type (pou_daily_hydrographs), intent (in) :: pou1
+        type (pou_daily_hydrographs) :: pou2
+        integer :: i = 0
+
+        pou2%pods = const * pou1%pods
+        pou2%pors = const * pou1%pors
+
+        if (allocated(pou1%pod)) then
+          allocate (pou2%pod(size(pou1%pod)))
+          do i = 1, size(pou2%pod)
+            pou2%pod(i) = const * pou1%pod(i)
+          end do
+        end if
+
+        if (allocated(pou1%por)) then
+          allocate (pou2%por(size(pou1%por)))
+          do i = 1, size(pou2%por)
+            pou2%por(i) = const * pou1%por(i)
+          end do
+        end if
+      end function pouhyd_mult_const
+
+      function pouhyd_div_const (pou1, const) result (pou2)
+        type (pou_daily_hydrographs), intent (in) :: pou1
+        real, intent (in) :: const
+        type (pou_daily_hydrographs) :: pou2
+        integer :: i = 0
+
+        pou2%pods = pou1%pods / const
+        pou2%pors = pou1%pors / const
+
+        if (allocated(pou1%pod)) then
+          allocate (pou2%pod(size(pou1%pod)))
+          do i = 1, size(pou2%pod)
+            pou2%pod(i) = pou1%pod(i) / const
+          end do
+        end if
+
+        if (allocated(pou1%por)) then
+          allocate (pou2%por(size(pou1%por)))
+          do i = 1, size(pou2%por)
+            pou2%por(i) = pou1%por(i) / const
+          end do
+        end if
+      end function pouhyd_div_const
             
       !function to divide hyd by another hyd
       function hydout_div_conv (hyd1, hyd2) result (hyd3)
