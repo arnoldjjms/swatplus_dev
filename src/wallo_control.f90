@@ -18,29 +18,32 @@
         !! om withdrawal - pou_om(ipou)%pod(ipod)
         !ipou = pod(ipod)%pou(ipou)%num
         call wallo_withdraw (ipod, ipou)
-        pou(ipou)%pod(ipod)%fin = "y"
       end do
         
-      !! check if all PODs are finished for the POU
-      pou(ipou)%fin = "y"
-      do ipodu = 1, pou(ipou)%pods
-        if (pou(ipou)%pod(ipodu)%fin == "n") then
-          pou(ipou)%fin = "n"
-          !! check if compensation is needed for unmet duty
-          exit
-        end if
+      !! check if all PODs are finished for each POU
+      do ipou = 1, pod(ipod)%pous
+        pou(ipou)%fin = "y"
+        do ipodu = 1, pou(ipou)%pods
+          if (pou(ipou)%pod(ipodu)%fin == "n") then
+            pou(ipou)%fin = "n"
+            !! check if compensation is needed for unmet duty
+            exit
+          end if
+        end do
       end do
       
       !! deliver to POUs and PORs
+      do ipou = 1, db_mx%wallo_pou
       if (pou(ipou)%fin == "y") then
-        do ipou = 1, db_mx%wallo_pou
+        !do ipou = 1, db_mx%wallo_pou
           !! deliver water to POU
           call wallo_pou_deliv (ipou)
             
           !! return to receiving objects and update water and constituent mass
           call wallo_return (ipou)
-        end do
+        !end do
       end if
+      end do
       
       return
       end subroutine wallo_control

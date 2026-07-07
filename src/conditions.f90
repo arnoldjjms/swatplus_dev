@@ -34,6 +34,7 @@
       real :: ran_num = 0.                    !          |
       real :: aunif                           !          |
       integer :: ires = 0                     !          |
+      integer :: iwtow = 0                    !          |
       integer :: ipl = 0                      !          |
       integer :: iipl = 0                     !          |
       integer :: id = 0                       !          |
@@ -138,7 +139,7 @@
             end if
           end do
             
-            call cond_real (ic, pcom(ob_num)%plcur(ipl)%phuacc, d_tbl%cond(ic)%lim_const, idtbl)
+          call cond_real (ic, pcom(ob_num)%plcur(ipl)%phuacc, d_tbl%cond(ic)%lim_const, idtbl)
             
         !potential heat units - base zero
         case ("phu_base0")
@@ -628,6 +629,13 @@
           if (ob_num == 0) ob_num = ob_cur
           
           call cond_real (ic, irrig(ob_num)%demand, d_tbl%cond(ic)%lim_const, idtbl)
+                                 
+        !irrigation demand
+        case ("irr_pou_dmd")
+          ob_num = d_tbl%cond(ic)%ob_num
+          if (ob_num == 0) ob_num = ob_cur
+          
+          call cond_real (ic, pou(ob_num)%demand, d_tbl%cond(ic)%lim_const, idtbl)
                       
         !aquifer depth below surface
         case ("aqu_dep")
@@ -721,6 +729,17 @@
             end if
           end do
              
+        !reservoir volume
+        case ("wtow_vol")
+          !determine target variable
+          iwtow = d_tbl%cond(ic)%ob_num
+          if (iwtow == 0) iwtow = ob_cur
+          
+          targ = d_tbl%cond(ic)%lim_const * wtow(iwtow)%stor_mx
+          
+          !check alternatives
+          call cond_real (ic, wtow_om_stor(iwtow)%flo, targ, idtbl)
+               
         !reservoir volume
         case ("vol")
           !determine target variable

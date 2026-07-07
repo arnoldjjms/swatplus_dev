@@ -49,7 +49,7 @@
               !! water use (domestic, industrial, commercial) 
               wuse_om_stor(j) = wuse_om_stor(j) + poud_om(ipou)%por(ipor)
               
-            case ("stor")
+            case ("wtow")
               !! water tower storage - don't change concentrations or compute outflow
               wtow_om_stor(j) = wtow_om_stor(j) + poud_om(ipou)%por(ipor)
            

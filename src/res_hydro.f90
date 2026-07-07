@@ -229,12 +229,12 @@
             case ("meas")
               !! measured outflow or release
               irel = int(d_tbl%act_typ(iac))
-              select case (recall(irel)%tstep)
-              case ("day")    !daily
+              select case (recall(irel)%typ)
+              case (1)    !daily
                 ht2%flo = ht2%flo + recall(irel)%hd(time%day,time%yrs)%flo / nstep
-              case ("mo")    !monthly
+              case (2)    !monthly
                 ht2%flo = ht2%flo + recall(irel)%hd(time%mo,time%yrs)%flo / nstep
-              case ("yr")    !annual
+              case (3)    !annual
                 ht2%flo = ht2%flo + recall(irel)%hd(1,time%yrs)%flo / nstep
               end select
               ht2%flo = max(0.,ht2%flo)

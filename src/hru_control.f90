@@ -137,7 +137,6 @@
       hpc_d(j) = hpcz
       hscf_d(j) = hscfz
       hru(j)%water_seep = 0.
-      irrig(j)%demand = 0.
       hnb_d(j)%nuptake = 0.
       hnb_d(j)%puptake = 0.
       hwb_d(j)%wet_out = 0.
@@ -762,8 +761,6 @@
         hwb_d(j)%pet = pet_day
         hwb_d(j)%qtile = qtile
         hwb_d(j)%irr = irrig(j)%applied
-        irrig(j)%applied = 0.
-        irrig(j)%runoff = 0.
         hwb_d(j)%surq_runon = ls_overq
         hwb_d(j)%latq_runon = latqrunon 
         hwb_d(j)%overbank = hru(j)%wet_obank_in

@@ -3,7 +3,7 @@
       implicit none
             
       real :: trans_m3 = 0.
-      real :: trn_m3 = 0.                   !m3     |demand
+      real :: dmd_m3 = 0.                   !m3     |demand
       real, dimension(6) :: trn_fr = 0.     !frac   |transfer fraction for each source object (up to 6)
       
       !! point of delivery objects (POD) for each point of use (POU)
@@ -39,7 +39,6 @@
       !! irrigation amount and irrigation operations number (irr.ops) if POU type is irr
       type pou_irrigation
         integer :: hru_num = 0                  !number of nrus in the farm/district that are irrigated
-        real :: dmd = 0.                        !irrigation demand - mm
         integer, dimension(:), allocatable :: hru                          !hru number
         character (len=25), dimension(:), allocatable :: dtbl_lum          !decision table name to set daily irrigation demand
         integer, dimension(:), allocatable :: dtbl_num                     !decision table number to set daily irrigation demand
@@ -49,6 +48,7 @@
       type hru_irrigation
         character (len=25) :: name = ""         !name of irrigation useruser
         integer :: hrus = 0                     !number of irrigation operations from irr.ops
+        real :: irr_dmd = 0.                    !irrigation demand of the irrigation object (m3/s)
         integer, dimension(:), allocatable :: hru_num                      !hru number
         character (len=25), dimension(:), allocatable :: dtbl_lum          !decision table name to set daily irrigation demand
       end type hru_irrigation
@@ -64,10 +64,11 @@
         character (len=25) :: dtbl_mx = ""      !decision table name to set max daily right or duty
         integer :: dtbl_mx_num = 0              !decision table number to set max daily right or duty
         real :: rate_max = 0.                   !fixed max daily right or duty (m3/s) - if dtble is not used
-        character (len=25) :: dtbl_pod_fr = ""  !decision table name to set fractions from each POD - if null use rate_max
-        integer :: dtbl_pod_fr_num = 0          !decision table name to set fractions from each POD - if null use rate_max
-        character (len=25) :: dtbl_por_fr = ""  !decision table name to set fractions from each POR - if null use rate_max
-        integer :: dtbl_por_fr_num = 0          !decision table name to set fractions from each POR - if null use rate_max
+        real :: demand = 0.                     !irrigation demand of all hrus in the POU (m3/s)
+        character (len=25) :: dtbl_pod_fr = ""  !decision table name to set fractions from each POD - if null use constant fraction
+        integer :: dtbl_pod_fr_num = 0          !decision table name to set fractions from each POD - if null use constant fraction
+        character (len=25) :: dtbl_por_fr = ""  !decision table name to set fractions to each POR - if null use constant fraction
+        integer :: dtbl_por_fr_num = 0          !decision table name to set fractions to each POR - if null use constant fraction
         character (len=1) :: fin = ""           !water taken from all POD in the POU (y/n)
         type (pou_irrigation) :: irr             !irrigation hru and dtbl if POU type is irr
         type (pou_points_of_delivery), dimension(:), allocatable :: pod     !POD data for the POU
@@ -77,9 +78,11 @@
         
       !! point of use objects (POU) for each point of delivery (POD)
       type pod_points_of_use
-        character (len=25) :: name = ""         !name of POU
         integer :: num = 0                      !POU number
-        integer :: pod_num = 0                      !POD number
+        character (len=25) :: name = ""         !name of POU
+        integer :: pod_num = 0                  !POD number in POU
+        character (len=10) :: typ = ""          !type of POD
+        integer :: typ_num = 0                  !POD type number
         character (len=25) :: right = ""        !water right
       end type pod_points_of_use
         

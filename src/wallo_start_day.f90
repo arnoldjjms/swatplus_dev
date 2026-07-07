@@ -10,6 +10,7 @@
       use hydrograph_module
       use water_allocation_module
       use recall_module
+      use hru_module
       
       implicit none
       
@@ -18,15 +19,12 @@
       integer :: ipod = 0       !none       |point of delivery (POD) number
       integer :: ipor = 0       !none       |point of return (POR) number
       integer :: iosrc = 0      !none       |outside basin source number
-      integer :: ihru = 0       !none       |hru number
       integer :: irr = 0        !none       |irrigation object number
       integer :: ican = 0       !none       |canal number
       integer :: istor = 0      !none       |water storage number
       integer :: iom = 0        !none       |pointer to organic-mineral file
       integer :: j = 0          !none       |object number for decision table conditioning - leave 0 for generic tables
       integer :: iob = 0        !none       |current object number for decision table conditioning
-      integer :: ird = 0        !none       !irrigation distric number number of hrus
-      integer :: irdb = 0       !none       |irrigation farm/district hru data
 
       !! allocate water (wallo_control) for all non-natural objects
       
@@ -35,14 +33,14 @@
             !! use recall object for transfer
             ipod = osrc(iosrc)%wallo_pod
             iom = recall_db(iosrc)%iorg_min
-            select case (recall(iom)%tstep)
-              case ("day")    !daily
+            select case (recall(iom)%typ)
+              case (1)    !daily
                 osrc_om(iosrc) = recall(iom)%hd(time%day,time%yrs)
-              case ("mo")    !monthly
+              case (2)    !monthly
                 osrc_om(iosrc) = recall(iom)%hd(time%mo,time%yrs)
-              case ("yr")    !yearly
+              case (3)    !yearly
                 osrc_om(iosrc) = recall(iom)%hd(1,time%yrs)
-              case ("const") !constant
+              case (4) !constant
                 osrc_om(iosrc) = exco(iom)
               end select
             !! add option for dtbl - probably not needed  
@@ -73,62 +71,61 @@
           
           !! set water allocation duty (right) and fractions from each POD and to each POR
           do ipou = 1, db_mx%wallo_pou
-            !! zero water allocation objects and set reset POU finishes to no
+            !! zero water allocation objects and set reset POU finishes to "n"
+            pou(ipou)%fin = "n"
+            pou(ipou)%pod(:)%fin = "n"
           
-            !! compute duty if decision table is used for total irrigation demand
-            !pou(ipou)%rate_max = 0.
+            !! need irrig(j) when irrigating for condition and setting POU demand in dtbl
+            pou(ipou)%demand = 0.
             if (pou(ipou)%typ == "irr")then
-              if (pou(ipou)%dtbl_mx_num > 0) then
-                id = pou(ipou)%dtbl_mx_num
-                d_tbl => dtbl_flo(id)
-                call conditions (j, id)
-                call actions (j, iob, id)
-                !! reset demand or duty for transfer object
-                pou(ipou)%rate_max = trn_m3 * 86400. !convert from m3/s to m3/day
-              else
-                if (pou(ipou)%rate_max < 1.e-6) then
-                do ihru = 1, pou(ipou)%irr%hru_num
+              do ihru = 1, pou(ipou)%irr%hru_num
+                  j = pou(ipou)%irr%hru(ihru)
                   id = pou(ipou)%irr%dtbl_num(ihru)
-                  pou(ipou)%irr%dmd = 0.
                   d_tbl => dtbl_lum(id)
                   call conditions (j, id)
                   call actions (j, iob, id)
-                  !! save irrigation demand (from decision table) for each hru
-                  !! for "irr", typ_num is the pointer to hruirr_db
-                  irdb = pou(ipou)%typ_num
-                  j = hruirr_db(irdb)%hru_num(ihru)
-                  pou(ipou)%irr%dmd = irrig(j)%demand
-                  !! reset demand or duty for transfer object
-                  pou(ipou)%rate_max = pou(ipou)%rate_max + trn_m3 * 86400. !convert from m3/s to m3/day
-                end do
-                end if
-              end if
-              else
-                  if (pou(ipou)%dtbl_mx_num > 0) then
-                    id = pou(ipou)%dtbl_mx_num
-                    d_tbl => dtbl_flo(id)
-                    call conditions (j, id)
-                    call actions (j, iob, id)
-                    !! reset demand or duty for transfer object
-                    pou(ipou)%rate_max = trn_m3 * 86400. !convert from m3/s to m3/day
-                  end if
-              end if
-          
-            !! compute source fractions if decision table is used for POD fractions 
+                  !! irrig(j)%demand, applied, runoff (from decision table) for each hru
+                  !! reset demand or duty for transfer object - convert from mm to m3
+                  pou(ipou)%demand = pou(ipou)%demand + irrig(j)%demand * hru(ihru)%area_ha * 10.
+                  irrig(j)%demand = 0.
+              end do
+            end if
+            
+            !! if no dtbl, use the maximum rate every day
+            pou(ipou)%demand = pou(ipou)%rate_max * 86400. !convert to m3/s
+            !! if decision table, use to set demand
+            if (pou(ipou)%dtbl_mx_num > 0) then
+              dmd_m3 = 0.
+              id = pou(ipou)%dtbl_mx_num
+              d_tbl => dtbl_flo(id)
+              call conditions (j, id)
+              call actions (j, iob, id)
+              !! reset demand or duty for transfer object
+              pou(ipou)%demand = dmd_m3
+            end if
+            !! set max rate for the day - convert to m3/s
+            pou(ipou)%demand = Min(pou(ipou)%rate_max * 86400., pou(ipou)%demand)
+            
+            !! compute POD (source) fractions if decision table is used for POD fractions 
             if (pou(ipou)%dtbl_pod_fr_num > 0) then
               id = pou(ipou)%dtbl_pod_fr_num
-              if (id > 0) then
-                d_tbl => dtbl_flo(id)
-                call conditions (j, id)
-                call actions (j, iob, id)
-                !! reset source fractions for transfer object
-                do ipod = 1, pou(ipou)%pods
-                  pou(ipou)%pod(ipod)%frac = trn_fr(ipod)
-                  pou(ipou)%pod(ipod)%duty = trn_fr(ipod) * pou(ipou)%rate_max
-                  poud_met(ipou)%pod(ipod)%duty = pou(ipou)%pod(ipod)%duty
-                  poud_met(ipou)%pod(ipod)%deliv = 0.
-                end do
-              end if
+              d_tbl => dtbl_flo(id)
+              call conditions (j, id)
+              call actions (j, iob, id)
+              !! reset source fractions for transfer object
+              do ipod = 1, pou(ipou)%pods
+                pou(ipou)%pod(ipod)%frac = trn_fr(ipod)
+                pou(ipou)%pod(ipod)%duty = trn_fr(ipod) * pou(ipou)%demand
+                poud_met(ipou)%pod(ipod)%duty = pou(ipou)%pod(ipod)%duty
+                poud_met(ipou)%pod(ipod)%deliv = 0.
+              end do
+            else
+              !! use input POD (source) fractions
+              do ipod = 1, pou(ipou)%pods
+                pou(ipou)%pod(ipod)%duty = pou(ipou)%pod(ipod)%frac * pou(ipou)%demand
+                poud_met(ipou)%pod(ipod)%duty = pou(ipou)%pod(ipod)%duty
+                poud_met(ipou)%pod(ipod)%deliv = 0.
+              end do
             end if
           
             !! compute source fractions if decision table is used for POR fractions

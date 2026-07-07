@@ -238,6 +238,12 @@
             end do
           end if
           
+          !! zero irrigation data here in case water allocation is used
+          irrig(:)%runoff = 0.
+          irrig(:)%applied = 0.
+          irrig(:)%eff = 0.
+          irrig(:)%demand = 0.
+              
           !! allocation at start of day - withdrawal from outside source, water tower and canals
           if (db_mx%wallo_pou > 0) call wallo_start_day
 

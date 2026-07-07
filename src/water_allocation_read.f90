@@ -14,10 +14,13 @@
       
       character (len=80) :: titldum = ""!           |title of file
       character (len=80) :: header = "" !           |header of file
+      character (len=5) :: pp = "" !                |POD or POR
       integer :: eof = 0              !           |end of file
       integer :: imax = 0             !none       |determine max number for array (imax) and total number in file
       logical :: i_exist              !none       |check to determine if file exists
       
+      integer :: i = 0                !none       |POU loop counter
+      integer :: ip = 0                !none       |POU loop counter
       integer :: ipou = 0             !none       |POU number
       integer :: ipod = 0             !none       |POD number
       integer :: ipor = 0             !none       |POR number
@@ -55,11 +58,15 @@
         read (107,*,iostat=eof) header
         
         !! read POU data
-        do ipou = 1, imax
+        do i = 1, imax
+          
+          read (107,*,iostat=eof) ipou
           if (eof < 0) exit
-          read (107,*,iostat=eof) pou(ipou)%name, pou(ipou)%typ, pou(ipou)%typ_num, pou(ipou)%pods,    &
-              pou(ipou)%pors, pou(ipou)%dtbl_mx, pou(ipou)%rate_max, pou(ipou)%dtbl_pod_fr,             &
-              pou(ipou)%dtbl_por_fr
+          backspace (107)
+          
+          read (107,*,iostat=eof) ip, pou(ipou)%name, pou(ipou)%typ, pou(ipou)%typ_num,  &
+              pou(ipou)%pods, pou(ipou)%pors, pou(ipou)%dtbl_mx, pou(ipou)%rate_max,     &
+              pou(ipou)%dtbl_pod_fr, pou(ipou)%dtbl_por_fr
           
           ipods = pou(ipou)%pods
           ipors = pou(ipou)%pors
@@ -83,7 +90,7 @@
           
           !! read all POD input data
           do ipod = 1, ipods
-            read (107,*,iostat=eof) pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%name, pou(ipou)%pod(ipod)%typ, &
+            read (107,*,iostat=eof) pp,pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%name, pou(ipou)%pod(ipod)%typ, &
                 pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%conv_typ, pou(ipou)%pod(ipod)%conv_num,            &
                 pou(ipou)%pod(ipod)%dtbl_min, pou(ipou)%pod(ipod)%const_min, pou(ipou)%pod(ipod)%ann_max,       &
                 pou(ipou)%pod(ipod)%frac, pou(ipou)%pod(ipod)%comp
@@ -92,7 +99,7 @@
           
           !! read all POR input data
           do ipor = 1, ipors
-            read (107,*,iostat=eof) pou(ipou)%por(ipor)%num, pou(ipou)%por(ipor)%name, pou(ipou)%por(ipor)%typ, &
+            read (107,*,iostat=eof) pp,pou(ipou)%por(ipor)%num, pou(ipou)%por(ipor)%name, pou(ipou)%por(ipor)%typ, &
                 pou(ipou)%por(ipor)%num, pou(ipou)%por(ipor)%conv_typ, pou(ipou)%por(ipor)%conv_num,            &
                 pou(ipou)%por(ipor)%dtbl_max, pou(ipou)%por(ipor)%const_max, pou(ipou)%por(ipor)%ann_max,       &
                 pou(ipou)%por(ipor)%frac
@@ -204,8 +211,8 @@
           
           backspace (107)
           read (107,*,iostat=eof) pod(ipod)%num, pod(ipod)%name, pod(ipod)%typ, pod(ipod)%typ_num,           &
-            pod(ipod)%pous, (pod(ipod)%pou(ipou)%num, pod(ipod)%pou(ipou)%pod_num, pod(ipod)%pou(ipou)%name, &
-            pod(ipod)%pou(ipou)%right, ipou = 1, ipous)
+            pod(ipod)%pous, (pod(ipod)%pou(ipou)%num, pod(ipod)%pou(ipou)%name, pod(ipod)%pou(ipou)%pod_num, &
+            pod(ipod)%pou(ipou)%typ, pod(ipod)%pou(ipou)%typ_num, pod(ipod)%pou(ipou)%right, ipou = 1, ipous)
           
           !! store the POD number for each POU object for use in water allocation calculations
           select case (pod(ipod)%typ)

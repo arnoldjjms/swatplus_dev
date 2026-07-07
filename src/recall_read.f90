@@ -61,7 +61,7 @@
     end subroutine recalldb_read
     
 
-    subroutine recall_read (irec)
+    subroutine recall_read
 
       use hydrograph_module
       use input_file_module
@@ -76,7 +76,6 @@
       
       external :: search
       
-      integer, intent(in) :: irec
       character (len=80) :: titldum = ""!           |title of file
       character (len=80) :: header = "" !           |header of file
       character(len=16) :: ob_name = ""
@@ -133,46 +132,54 @@
         allocate (rec_y(imax))
         allocate (rec_a(imax))
       
+        rewind (107)
+        read (107,*) titldum
+        read (107,*) header
+      
       do ii = 1, imax
         read (107,*,iostat=eof) i
         if (eof < 0) exit
         backspace (107)
-        read (107,*,iostat = eof) k, recall(i)%name, recall(i)%units,      &
-                                     recall(i)%tstep, recall(i)%filename
+        read (107,*,iostat = eof) k, recall(i)%name, recall(i)%typ, recall(i)%filename
+        !read (107,*,iostat = eof) k, recall(i)%name, recall(i)%units,      &
+        !                             recall(i)%tstep, recall(i)%filename
         if (eof < 0) exit
           
-      !! read the organic mineral recall file
-        open (108,file = recall(irec)%filename)
+        !! read all files except average annual or constant (exco)
+        if (recall(i)%typ /= 4) then
+            
+        !! read the organic mineral recall file
+        open (108,file = recall(i)%filename)
         read (108,*,iostat=eof) titldum
         if (eof < 0) exit
         read (108,*,iostat=eof) nbyr
         if (eof < 0) exit
         read (108,*,iostat=eof) header
         
-        select case (recall(irec)%tstep)
+        select case (recall(i)%typ)
             
-          case ("sub") !! subdaily
-            allocate (recall(irec)%hyd_flo(time%step*366,time%nbyr), source = 0.)
-            allocate (recall(irec)%hd(366,time%nbyr))
+          case (0) !! subdaily
+            allocate (recall(i)%hyd_flo(time%step*366,time%nbyr), source = 0.)
+            allocate (recall(i)%hd(366,time%nbyr))
             
-          case ("day") !! daily
-            allocate (recall(irec)%hd(366,time%nbyr))
+          case (1) !! daily
+            allocate (recall(i)%hd(366,time%nbyr))
             
-          case ("mo") !! monthly
-            allocate (recall(irec)%hd(12,time%nbyr))
+          case (2) !! monthly
+            allocate (recall(i)%hd(12,time%nbyr))
             
-          case ("yr") !! yearly
-            allocate (recall(irec)%hd(1,time%nbyr))
+          case (3) !! yearly
+            allocate (recall(i)%hd(1,time%nbyr))
 
         end select 
         
         !! save starting year of recall data
         read (108,*,iostat=eof) jday, mo, day_mo, iyr
-        recall(irec)%start_yr = iyr
+        recall(i)%start_yr = iyr
         backspace (108)
         
         !! set start year if recall starts before start of simulation
-        if (recall(irec)%start_yr <= time%yrc) then
+        if (recall(i)%start_yr <= time%yrc) then
           iyrs = 1
           do
             read (108,*,iostat=eof) jday, mo, day_mo, iyr
@@ -183,7 +190,7 @@
           backspace (108)
         else
           !! seet star year if recall starts after start of  simulation
-          iyrs = recall(irec)%start_yr - time%yrc + 1
+          iyrs = recall(i)%start_yr - time%yrc + 1
         end if
         
         !! read and store data
@@ -200,39 +207,56 @@
             iyr1 = iyr
           
           !! read data for each time step
-          select case (recall(irec)%tstep)
-            case ("sub") !! subdaily
+          select case (recall(i)%typ)
+            case (0) !! subdaily
               !! convert m3/s -> m3
-              recall(irec)%hyd_flo(istep,iyrs) = ht1%flo * 86400. / time%step
+              recall(i)%hyd_flo(istep,iyrs) = ht1%flo * 86400. / time%step
               
               !! reset daily step and sum the daily hyd
               if (istep > idaystep * time%step) then
                 !! convert daily flow m3/s -> m3 -- other subdaily inputs are in t and kg
                 !recall(i)%hd(idaystep,iyrs)%flo = recall(i)%hd(idaystep,iyrs)%flo * 86400. / time%step
                 idaystep = idaystep + 1
-                recall(irec)%hd(idaystep,iyrs) = recall(irec)%hd(idaystep,iyrs) + ht1
+                recall(i)%hd(idaystep,iyrs) = recall(i)%hd(idaystep,iyrs) + ht1
               else
-                recall(irec)%hd(idaystep,iyrs) = recall(irec)%hd(idaystep,iyrs) + ht1
+                recall(i)%hd(idaystep,iyrs) = recall(i)%hd(idaystep,iyrs) + ht1
               end if
            
-            case ("day") !! daily
+            case (1) !! daily
               read (108,*,iostat=eof) jday, mo, day_mo, iyr, ob_typ, ob_name,    &
-                                                      recall(irec)%hd(jday1,iyrs)
-            case ("mo") !! monthly
+                                                      recall(i)%hd(jday1,iyrs)
+            case (2) !! monthly
               read (108,*,iostat=eof) jday, mo, day_mo, iyr, ob_typ, ob_name,    &
-                                                      recall(irec)%hd(mo1,iyrs)
+                                                      recall(i)%hd(mo1,iyrs)
               write (10108,*) jday, mo, day_mo, iyr, ob_typ, ob_name,    &
-                                                      recall(irec)%hd(mo1,iyrs)
-            case ("yr") !! yearly
+                                                      recall(i)%hd(mo1,iyrs)
+            case (3) !! yearly
               read (108,*,iostat=eof) jday, mo, day_mo, iyr, ob_typ, ob_name, ht1
-              recall(irec)%hd(1,iyrs) = ht1
+              recall(i)%hd(1,iyrs) = ht1
             end select
         
         !! save end year of recall data
         recall(i)%end_yr = iyr
         close (108)
         
+        else      !! set exco - recall(i)%typ = 4
+            
+          if (recall(i)%typ == 4) then
+            iexo_allo = 1
+            allocate (recall(i)%hd(1,1))
+            !! xwalk with exco file to get sequential number
+            do iexco_om = 1, db_mx%exco_om
+              if (exco_db(iexco_om)%name == recall(i)%filename) then
+                recall(i)%hd(1,1) = exco(iexco_om)
+                exit
+              end if
+            end do
+          end if
+        end if    !! if for exco
+        
         end do    !! loop for recall_om files (ii = 1, imax)
+        close (107)
+        exit
       end do
       end if      !! if file exists for recall.rec
       

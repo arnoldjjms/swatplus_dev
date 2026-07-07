@@ -245,7 +245,7 @@
                 hyd_flo(:) = ob(iob)%hd(ihyd)%flo / time%step
               case ("recall")   ! point source inflow
                 irec = ob(iob)%num
-                if (recall(irec)%tstep == "sub") then    !subdaily
+                if (recall(irec)%typ == 0) then    !subdaily
                   hyd_flo(:) = ob(iob)%hyd_flo(ob(iob)%day_cur,:)
                 else                                ! monthly, yearly, and ave annual
                   hyd_flo(:) = ob(iob)%hd(1)%flo / time%step
@@ -318,13 +318,13 @@
               
           case ("recall")   ! recall hydrograph
             irec = ob(icmd)%num
-            select case (recall(irec)%tstep)
-              case ("sub")    !subdaily
+            select case (recall(irec)%typ)
+              case (0)    !subdaily
                 ts1 = (time%day - 1) * time%step + 1
                 ts2 = time%day * time%step
                 ob(icmd)%hyd_flo(ob(icmd)%day_cur,:) = recall(irec)%hyd_flo(ts1:ts2,time%yrs)
                 ob(icmd)%hd(1) = recall(irec)%hd(time%day,time%yrs)
-              case ("day")    !daily
+              case (1)    !daily
                 if (time%yrc >= recall(irec)%start_yr .and. time%yrc <= recall(irec)%end_yr) then 
                     ob(icmd)%hd(1) = recall(irec)%hd(time%day,time%yrs)
                     !if negative flow (diversion), then remove nutrient mass
@@ -334,13 +334,13 @@
                 else
                     ob(icmd)%hd(1) = hz
                 end if
-              case ("mo")    !monthly
+              case (2)    !monthly
                 if (time%yrc >= recall(irec)%start_yr .and. time%yrc <= recall(irec)%end_yr) then 
                     ob(icmd)%hd(1) = recall(irec)%hd(time%mo,time%yrs)
                 else
                     ob(icmd)%hd(1) = hz
                 end if
-              case ("yr")    !yearly
+              case (3)    !yearly
                 if (time%yrc >= recall(irec)%start_yr .or. time%yrc <= recall(irec)%end_yr) then
                   ob(icmd)%hd(1) = recall(irec)%hd(1,time%yrs)
                 else

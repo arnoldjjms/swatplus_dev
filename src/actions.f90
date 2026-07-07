@@ -67,6 +67,7 @@
       integer :: isrc = 0
       integer :: isched = 0
       integer :: ipud = 0
+      integer :: ipou = 0
       integer :: ipdl = 0
       integer :: ires = 0
       integer :: idb = 0
@@ -175,26 +176,54 @@
             irrig(j)%demand = d_tbl%act(iac)%const * hru(j)%area_ha * 10.       ! m3 = mm * ha * 10.
             res_ob(iob)%irrig_track = res_ob(iob)%irrig_track + 1               ! Tracker to update irrigation demand
             res_ob(iob)%d_irrig_day = irrig(j)%demand
-
-          !irrigate demand - water allocation action - only irrigates if adequate water is available
-          case ("irr_wallo")
-            ipl = 1
-            j = ob_cur                      ! hru number
+    
+        ! demand for water allocation PODs
+        case ("wallo_dmd")
+          select case (d_tbl%act(iac)%option)
+              
+          !! set the transfer amount - or duty - or water demand
+          case ("set_dmd") 
+            j = d_tbl%act(iac)%ob_num
+            if (j == 0) j = ob_cur
+            !! set demand to constant
+            dmd_m3 = d_tbl%act(iac)%const
             
-            irrop = d_tbl%act_typ(iac)      ! irrigation application type in irr.ops
-
-            if (d_tbl%act(iac)%name=='ponding') then !paddy irrigation
-              hru(j)%irr_hmax = d_tbl%act(iac)%const !mm
-              hru(j)%irr_hmin = d_tbl%act(iac)%const2 !mm
-              irrig(j)%demand = max(0.,d_tbl%act(iac)%const-wet_ob(j)%depth*1000.) * hru(j)%area_ha * 10.       ! m3 = mm * ha * 10.
-            else
-              irrig(j)%demand = d_tbl%act(iac)%const * hru(j)%area_ha * 10.       ! m3 = mm * ha * 10.
+          !irrigation demand - water allocation action - only irrigates if adequate water is available
+          case ("irr_dmd")
+            ipou = d_tbl%act(iac)%ob_num
+            !! set to total irrigation demand calculated in wallo_start_day
+            dmd_m3 = dmd_m3 + pou(ipou)%demand
+              
+          ! set the demand from a reservoir
+          case ("fill_res")
+            j = d_tbl%act(iac)%ob_num
+            if (j == 0) j = ob_cur
+            
+            if (d_tbl%act(iac)%file_pointer == "pvol") then
+              dmd_m3 = (d_tbl%act(iac)%const * res_ob(j)%pvol - res(j)%flo) *   &
+                                                         d_tbl%act(iac)%const2
+              dmd_m3 = Max (0., dmd_m3)
             end if
-                
+            if (d_tbl%act(iac)%file_pointer == "evol") then
+              dmd_m3 = (d_tbl%act(iac)%const * res_ob(j)%evol - res(j)%flo) *   &
+                                                         d_tbl%act(iac)%const2
+              dmd_m3 = Max (0., dmd_m3)
+            end if
+            
+          case ("fill_wtow")
+            j = d_tbl%act(iac)%ob_num
+            if (j == 0) j = ob_cur
+            
+              dmd_m3 = (d_tbl%act(iac)%const * wtow(j)%stor_mx - wtow_om_stor(j)%flo) *   &
+                                                         d_tbl%act(iac)%const2
+              dmd_m3 = Max (0., dmd_m3)
+              
+          end select
+       
           !irrigate - hru action
           case ("irrigate")
             ipl = 1
-            j = ob_cur                      ! hru number 
+            j = ob_cur      ! hru number 
             
             !! check number of applications per year
             if (pcom(j)%dtbl(idtbl)%num_actions(iac) <= Int(d_tbl%act(iac)%const2)) then
@@ -760,36 +789,6 @@
               hlt(j)%hufh = 0.
               hlt(j)%aet = 0.
               hlt(j)%pet = 0.
-      
-          !! set the amount of water to be diverted from channel in water allocation
-          case ("divert") 
-            j = d_tbl%act(iac)%ob_num
-            if (j == 0) j = ob_cur
-            
-            ! option to set tile flow directed toward the saturated buffer hru
-            select case (d_tbl%act(iac)%option)
-                
-            case ("flo_cms")    !! set water diverted - can't be more than actual flow/volume
-              trn_m3 = Min (ht2%flo, d_tbl%act(iac)%const * 86400.)
-
-            case ("frac")   !! constant fraction 
-              trn_m3 = d_tbl%act(iac)%const * ht2%flo
-                
-            end select
-            
-            !! add to total duty if multiple duties
-            pou(j)%rate_max = pou(j)%rate_max + trn_m3
-            
-          !! set the transfer amount - or duty - or water demand
-          case ("duty") 
-            j = d_tbl%act(iac)%ob_num
-            if (j == 0) j = ob_cur
-            
-            trn_m3 = d_tbl%act(iac)%const
-            
-            !! add to total duty if multiple duties
-            pou(j)%rate_max = pou(j)%rate_max + trn_m3
-            
                 
           !! set the transfer fraction from each object
           case ("duty_fr") 
@@ -817,18 +816,6 @@
             case ("fr6")    !! fraction of duty from POD source object 6
               trn_fr(6) = d_tbl%act(iac)%const
              
-            end select
-                
-          !! set the amount of water to be transferred in water allocation
-          case ("transfer") 
-            j = d_tbl%act(iac)%ob_num
-            if (j == 0) j = ob_cur
-            
-            ! option to set tile flow directed toward the saturated buffer hru
-            select case (d_tbl%act(iac)%option)
-                
-            case ("flo_cms")    !! set water to be transferred
-              trn_m3 = d_tbl%act(iac)%const * 86400.   !! m3/s to m3
             end select
                  
           ! set the amount of water to be diverted from tile
@@ -878,25 +865,7 @@
                     pl_mass(j)%rsd_tot%m, sol_sumno3(j), sol_sumsolp(j), hru(j)%lumv%sdr_dep
               end if
             end if
-                            
-          ! set the demand from a reservoir
-          case ("res_demand") 
-            j = d_tbl%act(iac)%ob_num
-            if (j == 0) j = ob_cur
-            
-            select case (d_tbl%act(iac)%option)
-            !! demand is to fill to principal spillway
-            case ("storage")
-              if (d_tbl%act(iac)%file_pointer == "pvol") then
-                trn_m3 = d_tbl%act(iac)%const * res_ob(j)%pvol - res(j)%flo
-                trn_m3 = Max (0., trn_m3)
-              end if
-              if (d_tbl%act(iac)%file_pointer == "evol") then
-                trn_m3 = d_tbl%act(iac)%const * res_ob(j)%evol - res(j)%flo
-                trn_m3 = Max (0., trn_m3)
-              end if
-            end select
-            
+      
           !turn off hru impounded water - rice paddy or wetland
           case ("impound_off")
             j = d_tbl%act(iac)%ob_num

@@ -15,8 +15,9 @@
       iom = wtp(itrt)%iorg_min
       outflo_om = wtp_om_treat(iom)
       
-      !! treated outflow is a fraction of withdrawal
+      !! treated outflow is currently set to inflow - no storage
       outflo_om%flo = outflo_om%flo * poud_om(ipou)%pors%flo
+      wuse_om_stor(itrt) = hz
       
       !! convert concentration to mass
       call hyd_convert_conc_to_mass (outflo_om)

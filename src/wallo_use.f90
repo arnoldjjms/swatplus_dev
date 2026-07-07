@@ -7,16 +7,17 @@
       implicit none 
 
       integer, intent (in):: ipou       !water allocation object number
-      integer :: iuse      !water use number
+      integer :: iuse                   !water use number
       integer :: iom                    !number of organic-mineral concentrations of water use
       
-      !! treating water to wtp or use concentrations
+      !! domestic, industrial, commercial use concentrations
       iuse = pou(ipou)%typ_num
       iom = wuse(iuse)%iorg_min
       outflo_om = wuse_om_efflu(iom)
       
-      !! treated outflow is a fraction of withdrawal
+      !! treated outflow is currently set to inflow - no storage
       outflo_om%flo = outflo_om%flo * poud_om(ipou)%pors%flo
+      wuse_om_stor(iuse) = hz
       
       !! convert concentration to mass
       call hyd_convert_conc_to_mass (outflo_om)

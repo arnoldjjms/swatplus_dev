@@ -422,8 +422,9 @@
       !recall hydrograph inputs
       type recall_hydrograph_inputs
         character(len=25) :: name = ""
-        character(len=13) :: units = ""          !mass, conc
-        character(len=13) :: tstep = ""          !day, mo, yr
+        character(len=13) :: units = ""        !! mass, conc
+        !character(len=13) :: tstep = ""       !! day, mo, yr
+        integer :: typ = 0                     !! 0=subdaily, 1=daily, 2= monthly, 3=yearly
         character(len=25) :: filename = ""
         !hd and hyd_flo units are in cms and mg/L
         type (hyd_output), dimension (:,:), allocatable :: hd   !m3/s for flow  |input total hyd for daily, monthly, annual and exco

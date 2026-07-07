@@ -261,7 +261,7 @@
       open (107,file="SWIFT/recall.swf",recl = 1500)
       write (107,*)           "         ID            NAME              REC_TYP         FILENAME"
       do irec = 1, db_mx%recalldb_max
-        write (107,*) irec, recall(irec)%filename, recall(irec)%units, recall(irec)%tstep
+        write (107,*) irec, recall(irec)%filename, recall(irec)%typ
         
         !! write to each recall file
         open (108,file="SWIFT/" // trim(adjustl(recall(irec)%filename)),recl = 1500)
