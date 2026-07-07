@@ -42,8 +42,9 @@
       integer, intent (in) :: jj       !none           |HRU number
       integer, intent (in) :: idtill   !none           |tillage type
       real, intent (in) :: bmix        !               | 
-       real :: fcgd              !                     |
+      real :: fcgd              !                     |
       integer :: l = 0                 !none           |counter
+      integer :: k = 0                 !none           |pesticide counter
       integer :: npmx = 0              !               |
       integer :: ipl = 0               !               |
       integer :: lyr_exit = 0
@@ -107,11 +108,7 @@
       tillage_days(jj) = 0
       tillage_depth(jj) = dtil
       tillage_switch(jj) = 1
-
-
-      !!by zhang DSSAT tillage
-      !!=======================
-
+      
       !! incorporate pathogens - no mixing - lost from transport
       if (dtil > 10.) then     
         !! incorporate pathogens
@@ -181,6 +178,12 @@
           mix_org%man = mix_org%man + frac_mixed * soil1(jj)%man(l)
           mix_org%water = mix_org%water + frac_mixed * soil1(jj)%water(l)
           
+          !! mix pesticides
+          npmx = cs_db%num_pests
+          do k = 1, npmx
+            csmix%pest(k) = csmix%pest(k) + cs_soil(jj)%ly(l)%pest(k) * frac_mixed
+          end do
+          
           !! mix each plant residue component separately
           do ipl = 1, pcom(jj)%npl
             ! sum up the amount mixed rsd in the soil from each plant in plant comunity
@@ -233,9 +236,10 @@
           soil(jj)%phys(l)%st = frac_non_mixed * soil(jj)%phys(l)%st + frac_dep(l) * mix_sw
           !soil(jj)%phys(l)%bd = frac_non_mixed * soil(jj)%phys(l)%bd + frac_dep(l) * mix_bd
 
-          !do k = 1, npmx
-          !  cs_soil(jj)%ly(l)%pest(k) = cs_soil(jj)%ly(l)%pest(k) * frac_non_mixed + smix(20+k) * frac_dep(l)
-          !end do
+          !! reconstitute pesticides
+          do k = 1, npmx
+            cs_soil(jj)%ly(l)%pest(k) = cs_soil(jj)%ly(l)%pest(k) * frac_non_mixed + csmix%pest(k) * frac_dep(l)
+          end do
         end do
       
         call mgt_tillfactor(jj,bio_mix_event,emix,dtil)

@@ -25,9 +25,7 @@
       !! read water canal inputs
 
       inquire (file='water_canal.wal', exist=i_exist)
-      if (.not. i_exist .or. 'water_canal.wal' == "null") then
-        allocate (canal(0:0))
-      else
+      if (i_exist) then
       do 
         open (107,file='water_canal.wal')
         read (107,*,iostat=eof) titldum
@@ -45,18 +43,16 @@
         do ic = 1, imax
           read (107,*,iostat=eof) i, canal(ic)%name, canal(ic)%w_sta, canal(ic)%init, canal(ic)%dtbl,       &
               canal(ic)%ddown_days, canal(ic)%w, canal(ic)%d, canal(ic)%s, canal(ic)%ss, canal(ic)%sat_con, &
-              canal(ic)%loss_fr, canal(ic)%bed_thick, canal(ic)%div_id, canal(ic)%day_beg, canal(ic)%day_end, &
-              num_aqu
+                                                                                canal(ic)%evap_co, num_aqu
           if (eof < 0) exit
           backspace (107)
 
           !! allocate and read aquifer loss data
-          allocate (canal(ic)%aqu_loss(num_aqu))
-
+          allocate (canal(ic)%aqu_loss_fr(num_aqu))
+          
           read (107,*,iostat=eof) i, canal(ic)%name, canal(ic)%w_sta, canal(ic)%init, canal(ic)%dtbl,       &
               canal(ic)%ddown_days, canal(ic)%w, canal(ic)%d, canal(ic)%s, canal(ic)%ss, canal(ic)%sat_con, &
-              canal(ic)%loss_fr, canal(ic)%bed_thick, canal(ic)%div_id, canal(ic)%day_beg, canal(ic)%day_end, &
-              canal(ic)%num_aqu, (canal(ic)%aqu_loss(iaq), iaq = 1, num_aqu)
+              canal(ic)%evap_co, canal(ic)%num_aqu, (canal(ic)%aqu_loss_fr(iaq), iaq = 1, num_aqu)
           
           !! crosswalk with weather station
           

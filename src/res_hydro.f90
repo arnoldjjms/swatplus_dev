@@ -187,19 +187,6 @@
               ht2%flo = ht2%flo + ht1%flo + (wbody%flo - b_lo)
               ht2%flo = max(0.,ht2%flo)
               
-            case ("irrig_trn")
-              !! release based on irrigation demand of hru or water rights object
-              iob = Int(d_tbl%act(iac)%const2)
-              select case (d_tbl%act(iac)%file_pointer)
-              case ("wro")    !demand from water rights object
-                demand = wallo(iob)%tot%demand
-              case ("hru")    !demand from single hru
-                demand = irrig(iob)%demand
-              end select
-              !! const allows a fraction (usually > 1.0) of the demand (m3) released
-              ht2%flo = ht2%flo + demand * d_tbl%act(iac)%const / nstep
-              ht2%flo = max(0.,ht2%flo)
-                 
             case ("weir")
               !! release based on weir equation
               iweir = d_tbl%act_typ(iac)
@@ -242,12 +229,12 @@
             case ("meas")
               !! measured outflow or release
               irel = int(d_tbl%act_typ(iac))
-              select case (recall_db(irel)%org_min%tstep)
-              case ("day")    !daily
+              select case (recall(irel)%typ)
+              case (1)    !daily
                 ht2%flo = ht2%flo + recall(irel)%hd(time%day,time%yrs)%flo / nstep
-              case ("mo")    !monthly
+              case (2)    !monthly
                 ht2%flo = ht2%flo + recall(irel)%hd(time%mo,time%yrs)%flo / nstep
-              case ("yr")    !annual
+              case (3)    !annual
                 ht2%flo = ht2%flo + recall(irel)%hd(1,time%yrs)%flo / nstep
               end select
               ht2%flo = max(0.,ht2%flo)
