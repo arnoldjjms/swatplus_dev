@@ -1202,6 +1202,7 @@
 
       interface operator (+)
         module procedure hydout_add
+        module procedure pouhyd_add
       end interface
              
       interface operator (-)
@@ -1218,10 +1219,12 @@
 
       interface operator (*)
         module procedure hydout_mult_const
+        module procedure pouhyd_mult_const
       end interface 
 
       interface operator (/)
         module procedure hydout_div_const
+        module procedure pouhyd_div_const
       end interface   
              
       interface operator (//)
@@ -1332,7 +1335,7 @@
       end subroutine hyd_convert_mass_to_conc
          
       !! routines for hydrograph module
-      function hydout_add (hyd1, hyd2) result (hyd3)
+      elemental function hydout_add (hyd1, hyd2) result (hyd3)
         type (hyd_output), intent (in) :: hyd1
         type (hyd_output), intent (in) :: hyd2
         type (hyd_output) :: hyd3
@@ -1361,7 +1364,7 @@
       end function hydout_add
                      
       !! routines for hydrograph module
-      function hydout_subtract (hyd1, hyd2) result (hyd3)
+      elemental function hydout_subtract (hyd1, hyd2) result (hyd3)
         type (hyd_output), intent (in) :: hyd1
         type (hyd_output), intent (in) :: hyd2
         type (hyd_output) :: hyd3
@@ -1386,7 +1389,7 @@
       end function hydout_subtract
             
       !! routines for hydrograph module
-      function hydout_mult (hyd1, hyd2) result (hyd3)
+      elemental function hydout_mult (hyd1, hyd2) result (hyd3)
         type (hyd_output), intent (in) :: hyd1
         type (hyd_output), intent (in) :: hyd2
         type (hyd_output) :: hyd3
@@ -1411,7 +1414,7 @@
       end function hydout_mult
             
       !! routines for hydrograph module
-      function hydout_add_const (const, hyd1) result (hyd2)
+      elemental function hydout_add_const (const, hyd1) result (hyd2)
         real, intent (in) :: const
         type (hyd_output), intent (in) :: hyd1
         type (hyd_output) :: hyd2
@@ -1435,7 +1438,7 @@
         hyd2%temp = hyd1%temp
       end function hydout_add_const
       
-      function hydout_mult_const (const, hyd1) result (hyd2)
+      elemental function hydout_mult_const (const, hyd1) result (hyd2)
         type (hyd_output), intent (in) :: hyd1
         real, intent (in) :: const
         type (hyd_output) :: hyd2
@@ -1460,7 +1463,7 @@
         hyd2%temp = hyd1%temp
       end function hydout_mult_const
       
-      function hydout_div_const (hyd1,const) result (hyd2)
+      elemental function hydout_div_const (hyd1,const) result (hyd2)
         type (hyd_output), intent (in) :: hyd1
         real, intent (in) :: const
         type (hyd_output) :: hyd2
@@ -1483,6 +1486,48 @@
         hyd2%grv = hyd1%grv / const
         hyd2%temp = hyd1%temp
       end function hydout_div_const
+
+      function pouhyd_add (pou1, pou2) result (pou3)
+        type (pou_daily_hydrographs), intent (in) :: pou1
+        type (pou_daily_hydrographs), intent (in) :: pou2
+        type (pou_daily_hydrographs) :: pou3
+
+        pou3%pods = pou1%pods + pou2%pods
+        pou3%pors = pou1%pors + pou2%pors
+        pou3%pod = pou1%pod + pou2%pod
+
+        if (allocated(pou1%por)) then
+          pou3%por = pou1%por + pou2%por
+        end if
+      end function pouhyd_add
+
+      function pouhyd_mult_const (const, pou1) result (pou2)
+        real, intent (in) :: const
+        type (pou_daily_hydrographs), intent (in) :: pou1
+        type (pou_daily_hydrographs) :: pou2
+
+        pou2%pods = const * pou1%pods
+        pou2%pors = const * pou1%pors
+        pou2%pod = const * pou1%pod
+
+        if (allocated(pou1%por)) then
+          pou2%por = const * pou1%por
+        end if
+      end function pouhyd_mult_const
+
+      function pouhyd_div_const (pou1, const) result (pou2)
+        type (pou_daily_hydrographs), intent (in) :: pou1
+        real, intent (in) :: const
+        type (pou_daily_hydrographs) :: pou2
+
+        pou2%pods = pou1%pods / const
+        pou2%pors = pou1%pors / const
+        pou2%pod = pou1%pod / const
+
+        if (allocated(pou1%por)) then
+          pou2%por = pou1%por / const
+        end if
+      end function pouhyd_div_const
             
       !function to divide hyd by another hyd
       function hydout_div_conv (hyd1, hyd2) result (hyd3)
