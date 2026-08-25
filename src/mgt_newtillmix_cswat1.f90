@@ -68,7 +68,6 @@
       mix_mn = mnz
       mix_mp = mpz
       mix_org%tot = orgz
-      mix_org%rsd = orgz
       mix_org%hact = orgz
       mix_org%hsta = orgz
       mix_org%hs = orgz
@@ -98,7 +97,9 @@
       allocate (sol_mass(soil(jj)%nly), source = 0.)    
       allocate (sol_msm(soil(jj)%nly), source = 0.)    
       allocate (sol_msn(soil(jj)%nly), source = 0.)    
-      allocate (frac_dep(soil(jj)%nly),source = 0.)    
+      allocate (frac_dep(soil(jj)%nly),source = 0.)   
+      allocate (mix_org%rsd(pcom(jj)%npl))  
+      mix_org%rsd(:) = orgz     
 
       if (bmix == 0.) bio_mix_event = .false.
 
@@ -249,5 +250,7 @@
       deallocate (sol_msm)    
       deallocate (sol_msn)    
       deallocate (frac_dep)    
+      deallocate (mix_org%rsd) 
+      
       return
       end subroutine mgt_newtillmix_cswat1

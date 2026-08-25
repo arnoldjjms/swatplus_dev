@@ -98,8 +98,8 @@
       aqu_d(iaq)%stor = aqu_d(iaq)%stor + aqu_d(iaq)%rchrg
       
       !! if channel is a POD, allocate water for users and adjust flow in channel accordingly
-      if (aqu_d(iaq)%wallo_pod > 0) then
-        call wallo_control (aqu_d(iaq)%wallo_pod)
+      if (aqu_prm(iaq)%wallo_pod > 0) then
+        call wallo_control (aqu_prm(iaq)%wallo_pod)
       end if
 
       !! compute groundwater depth from surface

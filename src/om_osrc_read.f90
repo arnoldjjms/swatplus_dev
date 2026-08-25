@@ -33,7 +33,7 @@
         if (eof < 0) exit
         read (107,*,iostat=eof) imax
         read (107,*,iostat=eof) header
-        db_mx%om_treat = imax
+        db_mx%om_src = imax
         if (eof < 0) exit
         
         allocate (osrc_om(imax))

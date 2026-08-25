@@ -25,6 +25,7 @@
       type (aquifer_database), dimension(:), allocatable :: aqu_dat
       
       type aquifer_data_parameters
+        integer :: wallo_pod = 0            !POD (point of diversion) number for water allocation - 0 if not POD
         real :: area_ha = 0.     !ha         |surface area of aquifer
         real :: alpha_e = 0.     !days       |Exp(-alpha)
         real :: nloss = 0.       !frac       |nloss based on half life
@@ -34,7 +35,6 @@
       type (aquifer_data_parameters), dimension(:), allocatable :: aqu_prm 
 
       type aquifer_dynamic
-        integer :: wallo_pod = 0            !POD (point of delivery) number for water allocation - 0 if not POD
         real :: flo = 0.        !mm         |lateral flow from aquifer
         real :: dep_wt = 0.     !m          |average depth from average surface elevation to water table
         real :: stor = 0.       !mm         |average water storage in aquifer in timestep

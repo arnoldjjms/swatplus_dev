@@ -153,6 +153,7 @@
         integer :: stor = 0
         integer :: om_treat = 0
         integer :: om_use = 0
+        integer :: om_src = 0
         integer :: out_src = 0
         integer :: out_rcv = 0
         integer :: hru_irr = 0

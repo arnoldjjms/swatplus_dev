@@ -189,11 +189,12 @@
           end do
           backspace (108)
         else
-          !! seet star year if recall starts after start of  simulation
+          !! set star year if recall starts after start of  simulation
           iyrs = recall(i)%start_yr - time%yrc + 1
         end if
         
         !! read and store data
+        do 
           iyr1 = iyr
           read (108,*,iostat=eof) jday1, mo1, day_mo, iyr
           if (eof < 0) exit
@@ -234,6 +235,8 @@
               read (108,*,iostat=eof) jday, mo, day_mo, iyr, ob_typ, ob_name, ht1
               recall(i)%hd(1,iyrs) = ht1
             end select
+            
+        end do    !! read and store data
         
         !! save end year of recall data
         recall(i)%end_yr = iyr

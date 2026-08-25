@@ -1,7 +1,7 @@
       subroutine wallo_transfer (ipou)
       
 !!    ~ ~ ~ PURPOSE ~ ~ ~
-!!    this subroutine transfers water from point of delivery to point of use
+!!    this subroutine transfers water from point of diversion to place of use
 !!    by pipe or pump
 
       use water_allocation_module
@@ -14,8 +14,8 @@
       
       implicit none 
 
-      integer, intent (in):: ipou       !point of use (POU) number
-      integer :: ipod = 0               !point of delivery (POD) number
+      integer, intent (in):: ipou       !place of use (POU) number
+      integer :: ipod = 0               !point of diversion (POD) number
       integer :: iconv = 0              !conveyance object number (pipe or pump number)
 
       !! transfer water to receiving object from each source

@@ -14,8 +14,8 @@
       
       implicit none 
 
-      integer, intent (in) :: ipou          !point of use number
-      integer :: ipodu = 0                  !point of use daily duty number
+      integer, intent (in) :: ipou          !place of use number
+      integer :: ipodu = 0                  !place of use daily duty number
       integer :: ipor = 0                   !point of receiving object number
       integer :: iob = 0                    !POD object number
       integer :: icha = 0                   !channel object number
@@ -99,19 +99,23 @@
               !! calculate water table depth
               
             case ("wtp")
-              !! wastewater treatment 
-              wtp_om_stor(iob) = wtp_om_stor(iob) + poud_om(ipou)%pods
-              !! compute outflow and concentrations
-              call wallo_treatment (ipou)
+              if (pou(ipou)%pods > 0) then
+                !! wastewater treatment 
+                wtp_om_stor(iob) = wtp_om_stor(iob) + poud_om(ipou)%pods
+                !! compute outflow and concentrations
+                call wallo_treatment (ipou)
+              end if
               
             case ("use")
-              !! water use (domestic, industrial, commercial) 
-              wuse_om_stor(iob) = wuse_om_stor(iob) + poud_om(ipou)%pods
-              !! compute outflow and concentrations
-              call wallo_use (ipou)
+              if (pou(ipou)%pods > 0) then
+                !! water use (domestic, industrial, commercial) 
+                wuse_om_stor(iob) = wuse_om_stor(iob) + poud_om(ipou)%pods
+                !! compute outflow and concentrations
+                call wallo_use (ipou)
+              end if
               
-            case ("stor")
-              !! water tower storage - don't change concentrations or compute outflow
+            case ("wtow")
+              !! water tower storage - doesn't change concentrations or compute outflow
               wtow_om_stor(iob) = wtow_om_stor(iob) + poud_om(ipou)%pods
            
             case ("can")

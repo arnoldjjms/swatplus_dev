@@ -7,17 +7,21 @@
       
       implicit none 
 
-      integer, intent (inout) :: ipod       !point of delevery number
-      integer :: ipou                       !point of use number
-      integer :: ipoud = 0                  !point of use counter for each POD
-      integer :: ipodu = 0                  !point of delevery counter for each POU
+      integer, intent (inout) :: ipod       !point of diversion number
+      integer :: ipou                       !place of use number
+      integer :: ipous                      !counter for place of use number
+      integer :: ipods                      !counter for point of diversion
+      integer :: ipoud = 0                  !place of use counter for each POD
+      integer :: ipodu = 0                  !point of diversion counter for each POU
       integer :: ipor = 0                   !point of receiving object number
       
       !! withdraw from POD for each POU
-      do ipou = 1, pod(ipod)%pous
-        !! om withdrawal - pou_om(ipou)%pod(ipod)
-        !ipou = pod(ipod)%pou(ipou)%num
-        call wallo_withdraw (ipod, ipou)
+      do ipous = 1, pod(ipod)%pous
+        ipou = pod(ipod)%pou(ipous)%num
+        ipods = pod(ipod)%pou(ipous)%pod_num
+        if (pou(ipou)%pod(ipods)%wdraw_cur < pou(ipou)%pod(ipods)%wdraw_max * 86400.) then
+          call wallo_withdraw (ipod, ipous)
+        end if
       end do
         
       !! check if all PODs are finished for each POU

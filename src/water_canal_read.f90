@@ -41,18 +41,22 @@
         allocate (canal_cs_stor(imax))
 
         do ic = 1, imax
-          read (107,*,iostat=eof) i, canal(ic)%name, canal(ic)%w_sta, canal(ic)%init, canal(ic)%dtbl,       &
-              canal(ic)%ddown_days, canal(ic)%w, canal(ic)%d, canal(ic)%s, canal(ic)%ss, canal(ic)%sat_con, &
-                                                                                canal(ic)%evap_co, num_aqu
+          read (107,*,iostat=eof) i, canal(ic)%name, canal(ic)%w_sta, canal(ic)%init, canal(ic)%dtbl,   &
+              canal(ic)%ddown_days, canal(ic)%w, canal(ic)%d, canal(ic)%l, canal(ic)%s, canal(ic)%ss,   &
+              canal(ic)%sat_con, canal(ic)%evap_co, num_aqu
           if (eof < 0) exit
           backspace (107)
 
           !! allocate and read aquifer loss data
           allocate (canal(ic)%aqu_loss_fr(num_aqu))
           
-          read (107,*,iostat=eof) i, canal(ic)%name, canal(ic)%w_sta, canal(ic)%init, canal(ic)%dtbl,       &
-              canal(ic)%ddown_days, canal(ic)%w, canal(ic)%d, canal(ic)%s, canal(ic)%ss, canal(ic)%sat_con, &
-              canal(ic)%evap_co, canal(ic)%num_aqu, (canal(ic)%aqu_loss_fr(iaq), iaq = 1, num_aqu)
+          read (107,*,iostat=eof) i, canal(ic)%name, canal(ic)%w_sta, canal(ic)%init, canal(ic)%dtbl,   &
+              canal(ic)%ddown_days, canal(ic)%w, canal(ic)%d, canal(ic)%l, canal(ic)%s, canal(ic)%ss,   &
+              canal(ic)%sat_con, canal(ic)%evap_co, canal(ic)%num_aqu,                                  &
+              (canal(ic)%aqu_loss_fr(iaq), iaq = 1, num_aqu)
+          
+          !! calculate maximum storage store = Area*length = (w*d + ss*d*d) * l/1000.  units m3
+          canal(ic)%stor_mx = (canal(ic)%w + canal(ic)%ss * canal(ic)%d) * canal(ic)%d * canal(ic)%l / 1000.
           
           !! crosswalk with weather station
           

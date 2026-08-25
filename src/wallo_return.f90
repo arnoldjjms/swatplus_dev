@@ -8,7 +8,7 @@
       
       implicit none 
 
-      integer, intent (in) :: ipou          !point of use number
+      integer, intent (in) :: ipou          !place of use number
       integer :: ipor = 0                   !point of receiving object number
       integer :: iob = 0                    !object number of channel
       integer :: j = 0                      !POR object number
@@ -21,11 +21,15 @@
           !call wallo_transfer (ipou)
         
           !! water transfer to POR
-          poud_om(ipou)%por(ipor) =  pou(ipou)%por(ipor)%frac * poud_om(ipou)%pors
+          if (pou(ipou)%typ /= "wtp") then
+            poud_om(ipou)%por(ipor) =  pou(ipou)%por(ipor)%frac * poud_om(ipou)%pors
+            !! wtp may have different treatment for each POR - don't use fraction
+            !! just use the amount of water that is treated for each POR (poud_om(ipou)%por(ipor))
+          end if
           
           select case (pou(ipou)%por(ipor)%typ)
-          !! irrigation transfer in wallo_pou_deliver
-          case ("hru")
+            !! irrigation transfer in wallo_pou_deliver
+            case ("hru")
               
             !! divert flow into the channel in sd_channel_control3
             case ("cha")

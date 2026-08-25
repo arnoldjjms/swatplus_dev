@@ -44,7 +44,7 @@
         db_mx%wallo_pou = imax
         if (eof < 0) exit
         
-        allocate (pou(imax))           !! point of use (pou)
+        allocate (pou(imax))           !! place of use (pou)
         allocate (poud_met(imax))      !! daily duty and delivery
         allocate (poum_met(imax))      !! monthly duty and delivery
         allocate (pouy_met(imax))      !! yearly duty and delivery
@@ -90,10 +90,10 @@
           
           !! read all POD input data
           do ipod = 1, ipods
-            read (107,*,iostat=eof) pp,pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%name, pou(ipou)%pod(ipod)%typ, &
+            read (107,*,iostat=eof) pp, pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%name, pou(ipou)%pod(ipod)%typ, &
                 pou(ipou)%pod(ipod)%num, pou(ipou)%pod(ipod)%conv_typ, pou(ipou)%pod(ipod)%conv_num,            &
-                pou(ipou)%pod(ipod)%dtbl_min, pou(ipou)%pod(ipod)%const_min, pou(ipou)%pod(ipod)%ann_max,       &
-                pou(ipou)%pod(ipod)%frac, pou(ipou)%pod(ipod)%comp
+                pou(ipou)%pod(ipod)%dtbl_min, pou(ipou)%pod(ipod)%const_min, pou(ipou)%pod(ipod)%dtbl_wdraw,    &
+                pou(ipou)%pod(ipod)%ann_max, pou(ipou)%pod(ipod)%frac, pou(ipou)%pod(ipod)%comp
             if (eof < 0) exit
           end do
           
@@ -104,18 +104,6 @@
                 pou(ipou)%por(ipor)%dtbl_max, pou(ipou)%por(ipor)%const_max, pou(ipou)%por(ipor)%ann_max,       &
                 pou(ipou)%por(ipor)%frac
           end do
-                
-          !! check if POU is a channel or hru and if so, store the POU number for use when adding
-          !if (pou(ipou)%typ == "cha") then
-          !  pou(ipou)%por(ipor)%num_cha = ipou
-          !    do iob = 1, sd_ch_num
-          !      if (sd_ch(iob)%num == pou(ipou)%por(ipor)%num_cha) then
-          !        sd_ch(iob)%pou_num = ipou
-          !        sd_ch(iob)%por_num = ipor
-          !        exit
-          !      end if
-          !    end do
-          !  end if
           
           !! decision table for setting POU duty - max demand
           if (pou(ipou)%dtbl_mx /= "null") then
@@ -127,6 +115,7 @@
               end if
             end do
           end if
+          
           !! crosswalk with lum decision table for all hru in the irrigation district
           if (pou(ipou)%typ == "irr") then
             irrhru = hruirr_db(pou(ipou)%typ_num)%hrus
@@ -162,12 +151,30 @@
             !! xwalk with con decision table
             do idb = 1, db_mx%dtbl_flo
               if (pou(ipou)%dtbl_por_fr == dtbl_flo(idb)%name) then
-                !ihru = wallo(iwro)%trn(i)%rcv%num
                 pou(ipou)%dtbl_por_fr_num = idb
                 exit
               end if
             end do
           end if
+            
+          !! set initial maximum withdrawal
+          do ipod = 1, ipods
+            pou(ipou)%pod(ipod)%wdraw_max = pou(ipou)%pod(ipod)%ann_max
+            pou(ipou)%pod(ipod)%wdraw_cur = 0.
+          end do
+    
+          !! decision table for setting max withdrawal for each POD
+          do ipod = 1, ipods
+            if (pou(ipou)%pod(ipod)%dtbl_wdraw /= "null") then
+              !! xwalk with con decision table
+              do idb = 1, db_mx%dtbl_flo
+                if (pou(ipou)%pod(ipod)%dtbl_wdraw == dtbl_flo(idb)%name) then
+                  pou(ipou)%pod(ipod)%dtbl_wdraw_num = idb
+                  exit
+                end if
+              end do
+            end if
+          end do
             
         end do    !ipou = 1, imax
         
@@ -193,7 +200,7 @@
         read (107,*,iostat=eof) header
         if (eof < 0) exit
         
-        allocate (pod(imax))           !! point of use (pod)
+        allocate (pod(imax))           !! place of use (pod)
         allocate (podd_om(imax))       !! daily hydrographs
         allocate (podm_om(imax))       !! monthly hydrographs
         allocate (pody_om(imax))       !! yearly hydrographs
@@ -229,12 +236,12 @@
             hru(pod(ipod)%typ_num)%wallo_pod = pod(ipod)%num
             
           case ("aqu")
-            aqu_d(pod(ipod)%typ_num)%wallo_pod = pod(ipod)%num
+            aqu_prm(pod(ipod)%typ_num)%wallo_pod = pod(ipod)%num
             
           case ("can")
             canal(pod(ipod)%typ_num)%wallo_pod = pod(ipod)%num
             
-          case ("stor")
+          case ("wtow")
             wtow(pod(ipod)%typ_num)%wallo_pod = pod(ipod)%num
           end select
           

@@ -58,13 +58,12 @@
       integer :: j = 0                !none          |counter
       integer :: ihyd = 0             !              |
       integer :: idr = 0              !              |
+      integer :: ipou = 0             !              |
       integer :: iwro = 0             !              |
       real :: conv = 0.               !              |
       real :: frac_in = 0.            !              |
       integer :: ts1 = 0
       integer :: ts2 = 0
-      integer :: iw = 0               !              |counter for water allocation object
-      integer :: iwallo = 0           !              |variable to pass to wallo_control
       integer :: i_count = 0          !rtb gwflow
       integer :: i_mfl = 0            !rtb gwflow    |counter
       integer :: i_chan = 0           !rtb gwflow    |counter
@@ -442,14 +441,12 @@
       if (time%yrs > pco%nyskip) then
       
         !! print water allocation output
-        do iwro =1, db_mx%wallo_db
-          !call wallo_allo_output (iwro)
-          !call wallo_trn_output (iwro)
-          call wallo_treat_output (iwro)
-          call wallo_use_output (iwro)
-          !call wallo_osrc_output (iwro)
-          !call wallo_odmd_output (iwro)
+        do ipou =1, db_mx%wallo_pou
+          call wallo_pou_output (ipou)
         end do
+        !! print amount treated and used
+        call wallo_treat_output
+        call wallo_use_output
         
         !! print manure allocation output
         do iwro =1, db_mx%mallo_db

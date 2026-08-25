@@ -68,6 +68,7 @@
       integer :: isched = 0
       integer :: ipud = 0
       integer :: ipou = 0
+      integer :: ipod = 0
       integer :: ipdl = 0
       integer :: ires = 0
       integer :: idb = 0
@@ -177,6 +178,13 @@
             res_ob(iob)%irrig_track = res_ob(iob)%irrig_track + 1               ! Tracker to update irrigation demand
             res_ob(iob)%d_irrig_day = irrig(j)%demand
     
+        ! reset maximum withdrawal or duty
+        case ("duty_reset")
+          ipou = d_tbl%act(iac)%ob_num
+          ipod = int(d_tbl%act(iac)%const)
+          pou(ipou)%pod(ipod)%wdraw_max = d_tbl%act(iac)%const2
+          pou(ipou)%pod(ipod)%wdraw_cur = 0.
+            
         ! demand for water allocation PODs
         case ("wallo_dmd")
           select case (d_tbl%act(iac)%option)
@@ -215,6 +223,14 @@
             if (j == 0) j = ob_cur
             
               dmd_m3 = (d_tbl%act(iac)%const * wtow(j)%stor_mx - wtow_om_stor(j)%flo) *   &
+                                                         d_tbl%act(iac)%const2
+              dmd_m3 = Max (0., dmd_m3)
+              
+          case ("fill_can")
+            j = d_tbl%act(iac)%ob_num
+            if (j == 0) j = ob_cur
+            
+              dmd_m3 = (d_tbl%act(iac)%const * canal(j)%stor_mx - canal_om_stor(j)%flo) *   &
                                                          d_tbl%act(iac)%const2
               dmd_m3 = Max (0., dmd_m3)
               
@@ -388,7 +404,7 @@
             pcom(j)%fert_fut(ifrt)%day_fert = Int (d_tbl%act(iac)%const2)
               
           !tillage
-          case ("till")
+          case ("till", "tillage")
             j = d_tbl%act(iac)%ob_num
             if (j == 0) j = ob_cur
             
@@ -819,7 +835,7 @@
             end select
                  
           ! set the amount of water to be diverted from tile
-          case ("tileflo_contol") 
+          case ("tileflo_control")
             j = d_tbl%act(iac)%ob_num
             if (j == 0) j = ob_cur
             

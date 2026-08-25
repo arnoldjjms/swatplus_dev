@@ -423,7 +423,7 @@
       type recall_hydrograph_inputs
         character(len=25) :: name = ""
         character(len=13) :: units = ""        !! mass, conc
-        !character(len=13) :: tstep = ""       !! day, mo, yr
+        character(len=13) :: tstep = ""        !! day, mo, yr
         integer :: typ = 0                     !! 0=subdaily, 1=daily, 2= monthly, 3=yearly
         character(len=25) :: filename = ""
         !hd and hyd_flo units are in cms and mg/L
@@ -438,7 +438,6 @@
         integer :: objs = 0      !number of objects or 1st object command
         integer :: hru = 0       !1-number of hru"s or 1st hru command
         integer :: hru_lte = 0   !2-number of hru_lte"s or 1st hru_lte command
-        
         integer :: ru = 0        !3-number of ru"s or 1st ru command
         integer :: gwflow = 0    !4-number of gwflow"s or 1st gwflow command !rtb gwflow
         integer :: aqu = 0       !5-number of aquifer"s or 1st aquifer command
@@ -1260,7 +1259,7 @@
         type (hyd_output), intent (inout) :: hyd1
         type (hyd_output), intent (in) :: hyd2 
         
-        hyd1%flo = hyd1%flo
+        hyd1%flo = amin1 (hyd1%flo, hyd2%flo)
         hyd1%sed = amin1 (hyd1%sed, hyd2%sed)
         hyd1%orgn = amin1 (hyd1%orgn, hyd2%orgn)
         hyd1%sedp = amin1 (hyd1%sedp, hyd2%sedp)

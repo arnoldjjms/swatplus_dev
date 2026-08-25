@@ -142,8 +142,8 @@
       
 !! water allocation
       type input_water_allocation
-        character(len=25) :: pou = "point_of_use.wro"     !! water allocation points of use (POU) input file
-        character(len=25) :: pod = "point_of_deliv.wro"   !! water allocation points of delivery (POD) input file
+        character(len=25) :: pou = "place_of_use.wro"     !! water allocation places of use (POU) input file
+        character(len=25) :: pod = "point_of_diver.wro"   !! water allocation points of diversion (POD) input file
       end type input_water_allocation
       type (input_water_allocation) :: in_wallo
       

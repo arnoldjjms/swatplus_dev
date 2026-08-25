@@ -234,7 +234,7 @@
         integer :: bmpuser = 0
         integer :: crop_reg = 0
         integer :: paddy_irr = 0
-        integer :: wallo_pod = 0            !POD (point of delivery) number for water allocation - 0 if not POD
+        integer :: wallo_pod = 0            !POD (point of diversion) number for water allocation - 0 if not POD
 
         !! other data
         type (topography) :: topo

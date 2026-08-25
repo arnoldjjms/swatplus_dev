@@ -10,10 +10,10 @@
       
       implicit none 
 
-      integer, intent (in):: ipod         !point of delivery number
-      integer, intent (in) :: ipou        !point of use number
-      integer :: pod_num                  !point of delivery number for each point of use number (ipou)
-      integer :: pou_num                  !point of use number for each point of delivery number (ipou)
+      integer, intent (in):: ipod         !point of diversion number
+      integer, intent (in) :: ipou        !place of use number
+      integer :: pod_num                  !point of diversion number for each place of use number (ipou)
+      integer :: pou_num                  !place of use number for each point of diversion number (ipou)
       integer :: j = 0              !none       |source (delivery) object number
       real :: res_min = 0.          !m3         |min reservoir volume for withdrawal
       real :: can_min = 0.          !m3         |min canal volume for withdrawal
@@ -33,11 +33,11 @@
       
       !! outside the basin source - daily, monthly, or yearly flow from recall object
       case ("osrc")
-        poud_om(pou_num)%pod(ipou) = pou(pou_num)%pod(pod_num)%frac * osrc_om(j)
+        poud_om(pou_num)%pod(ipod) = pou(pou_num)%pod(pod_num)%frac * osrc_om(j)
         osrc_om(j) = (1. - pou(pou_num)%pod(pod_num)%frac) * osrc_om(j)
         
       !! water tower storage
-      case ("stor")
+      case ("wtow")
         wtow_min = pou(pou_num)%pod(pod_num)%const_min * wtow_om_stor(j)%flo
         !! check if withdrawal takes storage below the minimum
         if (wtow_om_stor(j)%flo > wtow_min) then
@@ -105,12 +105,17 @@
         
       end select
       
+      !! reset annual maximum withdrawals if decision table isn't used
+      pou(pou_num)%pod(pod_num)%wdraw_cur = pou(pou_num)%pod(pod_num)%wdraw_cur +            &
+                                                       poud_om(pou_num)%pod(pod_num)%flo
+            
       !! POD is finished - sum total withdrawal for the POU
       poud_om(pou_num)%pods = poud_om(pou_num)%pods + poud_om(pou_num)%pod(pod_num)
       pou(pou_num)%pod(pod_num)%fin = "y"
       
-      !! add to total flow and om withdrawal for the POU
-      pou(pou_num)%pod(pod_num)%deliv = pou(pou_num)%pod(pod_num)%deliv + poud_om(pou_num)%pod(pod_num)%flo
+      !! add to total flow delivered and om withdrawal for the POU
+      poud_met(pou_num)%pod(pod_num)%deliv = pou(pou_num)%pod(pod_num)%deliv + poud_om(pou_num)%pod(pod_num)%flo
+      poud_met(pou_num)%duty_tot%deliv = poud_met(pou_num)%duty_tot%deliv + poud_om(pou_num)%pod(pod_num)%flo
       poud_om(pou_num)%pors = poud_om(pou_num)%pors + poud_om(pou_num)%pod(pod_num)
       
       !! add constituents withdrawn to total withdrawal for the POU
